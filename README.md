@@ -142,4 +142,4 @@ input x is a low-resolution input, the content target y_c is the ground-truth hi
 
 ### Supplementary Material:
 
-[](https://cs.stanford.edu/people/jcjohns/papers/fast-style/fast-style-supp.pdf)
+[here](https://cs.stanford.edu/people/jcjohns/papers/fast-style/fast-style-supp.pdf)
