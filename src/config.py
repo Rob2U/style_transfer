@@ -1,6 +1,4 @@
 import os
-"""_summary_
-"""
 
 # Training hyperparameters
 NUM_CLASSES = 10

@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 
-class ADataset(Dataset):
+class TorchDataset(Dataset):
     def __init__(self, root, train, transform, download):
         super().__init__()
         self.root = root
@@ -24,7 +24,7 @@ class ADataset(Dataset):
         
 
 
-class DataModule(L.LightningDataModule):
+class LightningDataModule(L.LightningDataModule):
     def __init__(self, data_dir, batch_size, num_workers, dataset_path):
         super().__init__()
         self.data_dir = data_dir
@@ -51,13 +51,13 @@ class DataModule(L.LightningDataModule):
         )
         # Loading the training dataset. We need to split it into a training and validation part
         # We need to do a little trick because the validation set should not use the augmentation.
-        train_dataset = ADataset(
+        train_dataset = TorchDataset(
             root=self.dataset_path,
             train=True,
             transform=train_transform,
             download=True,
         )
-        val_dataset = ADataset(
+        val_dataset = TorchDataset(
             root=self.dataset_path,
             train=True,
             transform=test_transform,
@@ -68,7 +68,7 @@ class DataModule(L.LightningDataModule):
         L.seed_everything(42)
         _, self.val_ds = torch.utils.data.random_split(val_dataset, [45000, 5000])
 
-        self.test_ds = ADataset(
+        self.test_ds = TorchDataset(
             root=self.data_dir, train=False, transform=test_transform, download=True
         )
 

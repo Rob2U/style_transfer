@@ -8,16 +8,17 @@ import torchvision
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from torchvision import transforms
 
-from dataset import DataModule
-from model import ALModel
+from dataset import LightningDataModule
+from models.model import TorchLightningModel
 from config import *
 
 import wandb
 from pytorch_lightning.loggers import WandbLogger
 
-def train_model(dm, trainer, logger):
-    model = ALModel(
-            model_kwargs={
+def train_model(dm, trainer, logger, model_class):
+    model = model_class(
+            **{
+                "learning_rate": LEARNING_RATE,
                 "embed_dim": EMBED_DIM,
                 "hidden_dim": HIDDEN_DIM,
                 "num_heads": NUM_HEADS,
@@ -27,27 +28,27 @@ def train_model(dm, trainer, logger):
                 "num_patches": NUM_PATCHES,
                 "num_classes": NUM_CLASSES,
                 "dropout": DROPOUT,
-            },
-            lr=LEARNING_RATE,
+            }
      )
     #logger.watch(model, log='gradients', log_freq=100)
     trainer.fit(model, dm)
     #load best checkpoint after training
-    model = ALModel.load_from_checkpoint(
+    model = model_class.load_from_checkpoint(
         trainer.checkpoint_callback.best_model_path
     )
     return model
 
 # loads a pretrained model
-def run_pretrained_model(pretrained_filename):
+def run_pretrained_model(pretrained_filename, model_class):
     print("Found pretrained model at %s, loading..." % pretrained_filename)
     # Automatically loads the model with the saved hyperparameters
-    model = ALModel.load_from_checkpoint(pretrained_filename)
+    model = model_class.load_from_checkpoint(pretrained_filename)
     
     return model
 
 def run_model():
     wandb_logger = WandbLogger(project='ViT-CIFAR10')
+    
     wandb_logger.log_hyperparams({
         "batch_size": BATCH_SIZE,  
         "learning_rate": LEARNING_RATE,
@@ -59,7 +60,7 @@ def run_model():
         "dropout": DROPOUT,
     })
     
-    dm = DataModule(
+    dm = LightningDataModule(
         data_dir=DATA_DIR,
         batch_size=BATCH_SIZE,
         num_workers=NUM_WORKERS,
@@ -77,11 +78,12 @@ def run_model():
     
     pretrained_filename = os.path.join(CHECKPOINT_PATH, "ViT.ckpt")
 
-
+    model_class = TorchLightningModel
+    
     if os.path.isfile(pretrained_filename):
-        model = run_pretrained_model(pretrained_filename)
+        model = run_pretrained_model(pretrained_filename, model_class)
     else:
-        model = train_model(dm, trainer, wandb_logger)
+        model = train_model(dm, trainer, wandb_logger, model_class)
     
     results = trainer.test(model, datamodule=dm)
     

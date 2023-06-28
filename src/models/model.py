@@ -4,20 +4,20 @@ import torch.optim as optim
 
 
 
-class AModel(nn.Module):
-    def __init__(self, arg):
+class TorchModel(nn.Module):
+    def __init__(self, **kwargs):
         super().__init__()
-        self.arg = arg
+        self.kwargs = kwargs
 
     def forward(self, x):
         pass
 
 
-class ALModel(L.LightningModule):
-    def __init__(self, model_kwargs, lr):
+class TorchLightningModel(L.LightningModule):
+    def __init__(self, **model_kwargs):
         super().__init__()
-        self.save_hyperparameters()
-        self.model = AModel(**model_kwargs)
+        self.save_hyperparameters() # saves all passed arguments as hyperparameters
+        self.model = TorchModel(**model_kwargs)
         
     def forward(self, x):
         return self.model(x)
@@ -30,7 +30,7 @@ class ALModel(L.LightningModule):
         return [optimizer], [lr_scheduler]
 
     def _calculate_loss(self, batch, mode="train"):
-        pass
+        return 0 # calculate desired loss here
 
     def training_step(self, batch, batch_idx):
         loss = self._calculate_loss(batch, mode="train")
