@@ -140,6 +140,10 @@ input x is a low-resolution input, the content target y_c is the ground-truth hi
     For all style transfer experiments we compute feature reconstruction loss at layer relu3_3 and style reconstruction loss at layers relu1_2, relu2_2, relu3_3, and relu4_3 of the VGG-16 loss network φ.
     
 
-### Supplementary Material:
+### Useful Material:
 
-[here](https://cs.stanford.edu/people/jcjohns/papers/fast-style/fast-style-supp.pdf)
+[Paper Supplementary Material](https://cs.stanford.edu/people/jcjohns/papers/fast-style/fast-style-supp.pdf)
+
+[COCO torch dataset](https://medium.com/howtoai/pytorch-torchvision-coco-dataset-b7f5e8cad82)
+
+[COCO torch docs](https://pytorch.org/vision/stable/_modules/torchvision/datasets/coco.html)

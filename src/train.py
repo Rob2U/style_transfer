@@ -1,101 +1,97 @@
-import lightning as L
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+
 import torch.utils.data as data
 import torchvision
-from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from torchvision import transforms
 
-from dataset import LightningDataModule
-from models.model import TorchLightningModel
-from config import *
+from trainer import Trainer
+import os
 
+from dataset import perform_train_val_test_split
+from models.model import TorchModel
+from config import (
+    LEARNING_RATE,
+    DATA_DIR,
+    TRAIN_RATIO,
+    VAL_RATIO,
+    TEST_RATIO,
+    BATCH_SIZE,
+    EPOCHS,
+    CHECKPOINT_PATH,
+    ACCELERATOR,
+)
 import wandb
-from pytorch_lightning.loggers import WandbLogger
 
-def train_model(dm, trainer, logger, model_class):
+def train_model(model_class, train_dl, val_dl):
+    # configure model
     model = model_class(
-            **{
-                "learning_rate": LEARNING_RATE,
-                "embed_dim": EMBED_DIM,
-                "hidden_dim": HIDDEN_DIM,
-                "num_heads": NUM_HEADS,
-                "num_layers": NUM_LAYERS,
-                "patch_size": PATCH_SIZE,
-                "num_channels": NUM_CHANNELS,
-                "num_patches": NUM_PATCHES,
-                "num_classes": NUM_CLASSES,
-                "dropout": DROPOUT,
+            **{ # add all model related hyperparameters here
             }
      )
-    #logger.watch(model, log='gradients', log_freq=100)
-    trainer.fit(model, dm)
-    #load best checkpoint after training
-    model = model_class.load_from_checkpoint(
-        trainer.checkpoint_callback.best_model_path
-    )
-    return model
+        
+    # configure the trainer
+    optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+    trainer = Trainer(model, optimizer, wandb.log, accelerator=ACCELERATOR) 
+    trainer.train(model, train_loader=train_dl, val_loader=val_dl, epochs=EPOCHS)
+    
+    # save the model TODO: structure the model / checkpoint saving better
+    torch.save(trainer.model.state_dict(), os.path.join(CHECKPOINT_PATH, "model.pth"))
+    
+    return trainer.model
 
 # loads a pretrained model
 def run_pretrained_model(pretrained_filename, model_class):
-    print("Found pretrained model at %s, loading..." % pretrained_filename)
+    print("Loading pretrained model from %s..." % pretrained_filename)
     # Automatically loads the model with the saved hyperparameters
     model = model_class.load_from_checkpoint(pretrained_filename)
     
     return model
 
-def run_model():
-    wandb_logger = WandbLogger(project='ViT-CIFAR10')
+def init_logger():
     
-    wandb_logger.log_hyperparams({
+    wandb.init(
+        # set the wandb project where this run will be logged
+        project="style-transfer",
+        
+        # track hyperparameters and run metadata
+        config={
+        "learning_rate": 0.02,
+        "architecture": "CNN",
+        "dataset": "CIFAR-100",
+        "epochs": EPOCHS,
         "batch_size": BATCH_SIZE,  
         "learning_rate": LEARNING_RATE,
-        "num_epochs": MAX_EPOCHS,
-        "num_layers": NUM_LAYERS,
-        "num_heads": NUM_HEADS,
-        "embed_dim": EMBED_DIM,
-        "hidden_dim": HIDDEN_DIM,
-        "dropout": DROPOUT,
-    })
-    
-    dm = LightningDataModule(
-        data_dir=DATA_DIR,
-        batch_size=BATCH_SIZE,
-        num_workers=NUM_WORKERS,
-        dataset_path=DATASET_PATH,
+        }
     )
-    trainer = L.Trainer(
-        default_root_dir=os.path.join(CHECKPOINT_PATH, "ViT"),
-        accelerator=ACCELERATOR,
-        devices=DEVICES,
-        min_epochs=MIN_EPOCHS,
-        max_epochs=MAX_EPOCHS,
-        enable_checkpointing=True,
-        logger=wandb_logger,
-    )
-    
-    pretrained_filename = os.path.join(CHECKPOINT_PATH, "ViT.ckpt")
-
-    model_class = TorchLightningModel
-    
-    if os.path.isfile(pretrained_filename):
-        model = run_pretrained_model(pretrained_filename, model_class)
-    else:
-        model = train_model(dm, trainer, wandb_logger, model_class)
-    
-    results = trainer.test(model, datamodule=dm)
-    
-    return model, results
 
 if __name__ == "__main__":
-    # Setting the seed
-    L.seed_everything(42)
+    # Initialize the logger
+    init_logger()
 
     # Ensure that all operations are deterministic on GPU (if used) for reproducibility
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
     print("Device:", ACCELERATOR)
-    model, results = run_model()
+    
+    # load dataset and create dataloaders
+    train_ds, val_ds, test_ds = perform_train_val_test_split(
+        DATA_DIR,
+        TRAIN_RATIO,
+        VAL_RATIO, 
+        TEST_RATIO
+    )
+    
+    # create dataloaders
+    train_dl = data.DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
+    val_dl = data.DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
+    test_dl = data.DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
+    
+    
+    # train the model
+    model = train_model(TorchModel, train_dl, val_dl)
+    
+    # test the model TODO: implement test function

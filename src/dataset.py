@@ -1,4 +1,3 @@
-import lightning as L
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
@@ -21,81 +20,45 @@ class TorchDataset(Dataset):
     
     def __download__(self):
         pass
+
+def train_transform():
+    return None
+
+def test_transform():
+    return None
+
+def perform_train_val_test_split(dataset_path, train_size, val_size, test_size):
+        if train_size + val_size + test_size != 1:
+            raise ValueError("train_size + val_size + test_size must equal 1")
         
-
-
-class LightningDataModule(L.LightningDataModule):
-    def __init__(self, data_dir, batch_size, num_workers, dataset_path):
-        super().__init__()
-        self.data_dir = data_dir
-        self.batch_size = batch_size
-        self.num_workers = num_workers
-        self.dataset_path = dataset_path
-
-    #execute only on 1 GPU
-    def prepare_data(self):
-        self.fetch_dataset(checkpoint_path=self.data_dir)
+        dataset_size = 69420 # replace with actual dataset size
+        train_set_size = int(dataset_size * train_size)
+        val_set_size = int(dataset_size * val_size)
+        test_set_size = int(dataset_size * test_size)
         
-    #execute on every GPU
-    def setup(self, stage):
-        test_transform = transforms.Compose(
-            [
-                # some transforms here
-            ]
-        )
-        # For training, we add some augmentation
-        train_transform = transforms.Compose(
-            [
-                # some transforms here
-            ]
-        )
-        # Loading the training dataset. We need to split it into a training and validation part
-        # We need to do a little trick because the validation set should not use the augmentation.
-        train_dataset = TorchDataset(
-            root=self.dataset_path,
+        dataset_train = TorchDataset(
+            root=dataset_path,
             train=True,
-            transform=train_transform,
+            transform=train_transform(),
             download=True,
         )
-        val_dataset = TorchDataset(
-            root=self.dataset_path,
+        
+        dataset_test = TorchDataset(
+            root=dataset_path,
             train=True,
-            transform=test_transform,
+            transform=test_transform(),
             download=True,
         )
-        L.seed_everything(42)
-        self.train_ds, _ = torch.utils.data.random_split(train_dataset, [45000, 5000])
-        L.seed_everything(42)
-        _, self.val_ds = torch.utils.data.random_split(val_dataset, [45000, 5000])
+        
+        # perform train/val/test split 
+        # (a little complex because we need to make sure the same random seed is used for each split)
+        torch.seed(42)
+        train_ds, _ = torch.utils.data.random_split(dataset_train, [train_set_size, test_set_size + val_set_size])
+        
+        torch.seed(42)
+        train_set, test_ds = torch.utils.data.random_split(dataset_test, [train_set_size + val_set_size, test_set_size])
+        
+        torch.seed(42)
+        _, val_ds = torch.utils.data.random_split(train_set, [train_set_size, val_set_size])
 
-        self.test_ds = TorchDataset(
-            root=self.data_dir, train=False, transform=test_transform, download=True
-        )
-
-    def train_dataloader(self):
-        return DataLoader(
-            self.train_ds,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            shuffle=True,
-        )
-
-    def val_dataloader(self):
-        return DataLoader(
-            self.val_ds,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            shuffle=False,
-        )
-
-    def test_dataloader(self):
-        return DataLoader(
-            self.test_ds,
-            batch_size=self.batch_size,
-            num_workers=self.num_workers,
-            shuffle=False,
-        )
-
-    def fetch_dataset(self, checkpoint_path):
-        # download dataset
-        pass
+        return train_ds, val_ds, test_ds
