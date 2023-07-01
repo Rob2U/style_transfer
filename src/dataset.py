@@ -4,6 +4,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 from torchvision.datasets import MNIST
 
+from src.config import ACCELERATOR
 
 class TorchDataset(Dataset):
     def __init__(self, train, transform, download):
@@ -32,18 +33,20 @@ class MNISTWrapper(MNIST):
         img = img.float()
         img = torch.cat((img, img, img), dim=0)
         img = img.reshape(3, 224, 224)
+        img = img.to(ACCELERATOR)
+        
         return img, lbl
 
 def train_transform():
     return transforms.Compose([
         transforms.ToTensor(),
-        transforms.Resize(224),
+        transforms.Resize(224, antialias=True),
     ])
 
 def test_transform():
     return transforms.Compose([
         transforms.ToTensor(),
-        transforms.Resize(224),
+        transforms.Resize(224, antialias=True),
         
     ])
 

@@ -25,6 +25,7 @@ from .config import (
     EPOCHS,
     CHECKPOINT_PATH,
     ACCELERATOR,
+    RUN_NAME,
 )
 import wandb
 
@@ -42,8 +43,7 @@ def train_model(model_class, train_dl, val_dl):
     trainer.train(train_loader=train_dl, val_loader=val_dl, epochs=EPOCHS)
     
     # save the best model to checkpoint directory
-    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    torch.save(trainer.best_model["model_state"], os.path.join(CHECKPOINT_PATH, f"{model_class}--{timestamp}.pth"))
+    torch.save(trainer.best_model["model_state"], os.path.join(CHECKPOINT_PATH, f"{model_class}--{RUN_NAME}.pth"))
     
     return trainer.model
 
@@ -60,10 +60,10 @@ def init_logger():
         # set the wandb project where this run will be logged
         entity="robert-weeke",
         project="style-transfer",
-        
+        name=RUN_NAME,
         # track hyperparameters and run metadata
         config={
-        "learning_rate": 0.02,
+        "learning_rate": LEARNING_RATE,
         "architecture": "CNN",
         "dataset": "MNIST-TEST",
         "epochs": EPOCHS,

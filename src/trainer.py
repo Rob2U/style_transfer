@@ -5,6 +5,8 @@ from torch import optim
 
 from torch.nn import CrossEntropyLoss
 
+from torchmetrics import Accuracy
+
 
 class Trainer:
     def __init__(self, model, optimizer, log_function, accelerator, *args, **kwargs):
@@ -48,6 +50,8 @@ class Trainer:
                 
                 #calculate the loss
                 loss = self.train_loss_per_step(out, batch_lbl)
+                self.log_function({"train_loss": loss.item()})
+                
                 batch_losses.append(loss.item())
                 loss.backward()
 
@@ -69,7 +73,6 @@ class Trainer:
     def train_loss_per_step(self, out, batch_lbl):
         # define the loss fn
         batch_lbl = batch_lbl.to(self.accelerator)
-        
         loss_fn = CrossEntropyLoss()
         return loss_fn(out, batch_lbl)
         
@@ -79,6 +82,7 @@ class Trainer:
         # save model output and loss for later metrics
         losses = []
         outputs = []
+        labels = []
         
         # reset iterator
         dataiter = iter(val_loader)
@@ -90,9 +94,10 @@ class Trainer:
                 # set progress bar description
                 pbar.set_description(f"Validation Epoch {current_epoch}")
                 
-                out = self.model(batch_lbl)
+                out = self.model(batch_data)
                 outputs.append(out)
-                loss = self.validation_loss_per_step(out, batch_data)
+                loss = self.validation_loss_per_step(out, batch_lbl)
+                self.log_function({"val_loss": loss.item()})
                 losses.append(loss)
                 
                 # set progress bar stats
@@ -102,10 +107,17 @@ class Trainer:
     
     def validation_loss_per_step(self, out, batch_lbl):
         # depending on what shall be logged during validation, this function can be overwritten
-        pass 
+        batch_lbl = batch_lbl.to(self.accelerator)
+        loss_fn = CrossEntropyLoss()
+        return loss_fn(out, batch_lbl)
     
-    def validation_loss_per_epoch(self, outputs, losses):
-        pass
+    def validation_loss_per_epoch(self, outputs, labels):
+        labels = torch.cat(labels)
+        labels = labels.to(self.accelerator)
+        outputs = torch.cat(outputs)
+        
+        self.log_function(Accuracy(task='multiclass')(outputs, labels))
+
     
 def configure_optimizer(model, learning_rate):
     optimizer = optim.AdamW(model.parameters(), lr=learning_rate)

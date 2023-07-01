@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 from torchvision.models import vgg16, VGG16_Weights
 
+from src.config import LEARNING_RATE, ACCELERATOR
 
 
 class TorchModel(nn.Module):
@@ -24,4 +25,5 @@ class VGG16Wrapper(nn.Module):
         
 
     def forward(self, x):
+        x = x.to(ACCELERATOR)
         return self.linear(self.flatten(self.vgg16(x)))
