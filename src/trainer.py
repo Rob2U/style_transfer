@@ -3,7 +3,7 @@ import torch
 from tqdm import tqdm
 from torch import optim
 
-from torch.nn import CrossEntropyLoss
+from torch.nn import CrossEntropyLoss, Softmax
 
 from torchmetrics import Accuracy
 
@@ -13,6 +13,8 @@ class Trainer:
         self.accelerator = accelerator
         self.model = model
         self.model.to(self.accelerator)
+        self.accuracy = Accuracy(task='multiclass', num_classes=10)
+        self.accuracy.to(self.accelerator)
         
         self.optimizer = optimizer
         self.log_function = log_function # TODO: add logging for desired metrics
@@ -95,15 +97,21 @@ class Trainer:
                 pbar.set_description(f"Validation Epoch {current_epoch}")
                 
                 out = self.model(batch_data)
-                outputs.append(out)
                 loss = self.validation_loss_per_step(out, batch_lbl)
+                
+                outputs.append(out)
+                labels.append(batch_lbl)
+                losses.append(loss.item())
+                
                 self.log_function({"val_loss": loss.item()})
                 losses.append(loss)
                 
                 # set progress bar stats
                 pbar.set_postfix(loss=loss)
                 
-            self.on_val_epoch_end(outputs, losses)
+        self.on_val_epoch_end(outputs, losses)
+        self.validation_loss_per_epoch(outputs, labels)
+        
     
     def validation_loss_per_step(self, out, batch_lbl):
         # depending on what shall be logged during validation, this function can be overwritten
@@ -115,8 +123,11 @@ class Trainer:
         labels = torch.cat(labels)
         labels = labels.to(self.accelerator)
         outputs = torch.cat(outputs)
+        outputs = Softmax(dim=1)(outputs)
         
-        self.log_function(Accuracy(task='multiclass')(outputs, labels))
+        acc = self.accuracy(outputs, labels).item()
+        
+        self.log_function({"val_acc": acc})
 
     
 def configure_optimizer(model, learning_rate):

@@ -10,9 +10,9 @@ EPOCHS = 1
 
 # Dataset related
 DATA_DIR = os.path.join(os.getcwd(), "data")
-TRAIN_RATIO = 0.6
+TRAIN_RATIO = 0.8
 VAL_RATIO = 0.1
-TEST_RATIO = 0.3
+TEST_RATIO = 0.1
 
 
 # Compute related
