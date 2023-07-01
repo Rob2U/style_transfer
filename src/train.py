@@ -7,12 +7,15 @@ import torch.utils.data as data
 import torchvision
 from torchvision import transforms
 
-from trainer import Trainer
-import os
+#from torchvision.datasets import MNIST # test template
 
-from dataset import perform_train_val_test_split
-from models.model import TorchModel
-from config import (
+import os
+import datetime
+
+from .trainer import Trainer, configure_optimizer
+from .dataset import perform_train_val_test_split, TorchDataset, MNISTWrapper
+from .models import VGG16Wrapper
+from .config import (
     LEARNING_RATE,
     DATA_DIR,
     TRAIN_RATIO,
@@ -31,14 +34,16 @@ def train_model(model_class, train_dl, val_dl):
             **{ # add all model related hyperparameters here
             }
      )
+    model = model.to(ACCELERATOR)
         
     # configure the trainer
-    optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE)
+    optimizer = configure_optimizer(model=model, learning_rate=LEARNING_RATE)
     trainer = Trainer(model, optimizer, wandb.log, accelerator=ACCELERATOR) 
-    trainer.train(model, train_loader=train_dl, val_loader=val_dl, epochs=EPOCHS)
+    trainer.train(train_loader=train_dl, val_loader=val_dl, epochs=EPOCHS)
     
-    # save the model TODO: structure the model / checkpoint saving better
-    torch.save(trainer.model.state_dict(), os.path.join(CHECKPOINT_PATH, "model.pth"))
+    # save the best model to checkpoint directory
+    timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    torch.save(trainer.best_model["model_state"], os.path.join(CHECKPOINT_PATH, f"{model_class}--{timestamp}.pth"))
     
     return trainer.model
 
@@ -51,16 +56,16 @@ def run_pretrained_model(pretrained_filename, model_class):
     return model
 
 def init_logger():
-    
     wandb.init(
         # set the wandb project where this run will be logged
+        entity="robert-weeke",
         project="style-transfer",
         
         # track hyperparameters and run metadata
         config={
         "learning_rate": 0.02,
         "architecture": "CNN",
-        "dataset": "CIFAR-100",
+        "dataset": "MNIST-TEST",
         "epochs": EPOCHS,
         "batch_size": BATCH_SIZE,  
         "learning_rate": LEARNING_RATE,
@@ -72,13 +77,14 @@ if __name__ == "__main__":
     init_logger()
 
     # Ensure that all operations are deterministic on GPU (if used) for reproducibility
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    # torch.backends.cudnn.deterministic = True
+    # torch.backends.cudnn.benchmark = False
 
     print("Device:", ACCELERATOR)
     
     # load dataset and create dataloaders
     train_ds, val_ds, test_ds = perform_train_val_test_split(
+        MNISTWrapper,
         DATA_DIR,
         TRAIN_RATIO,
         VAL_RATIO, 
@@ -92,6 +98,6 @@ if __name__ == "__main__":
     
     
     # train the model
-    model = train_model(TorchModel, train_dl, val_dl)
+    model = train_model(VGG16Wrapper, train_dl, val_dl)
     
     # test the model TODO: implement test function

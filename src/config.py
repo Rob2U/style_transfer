@@ -4,7 +4,7 @@ import os
 
 # Training hyperparameters
 LEARNING_RATE = 3e-5
-BATCH_SIZE = 128
+BATCH_SIZE = 16
 EPOCHS = 10
 
 # Dataset related
@@ -15,7 +15,7 @@ TEST_RATIO = 0.3
 
 
 # Compute related
-ACCELERATOR = "gpu"
+ACCELERATOR = "cpu" # "gpu" or "cpu
 
 # Path to the folder where the pretrained models are saved / will be saved
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")

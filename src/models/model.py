@@ -2,22 +2,26 @@ import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 
+from torchvision.models import vgg16, VGG16_Weights
+
 
 
 class TorchModel(nn.Module):
     def __init__(self, **kwargs):
         super().__init__()
         self.kwargs = kwargs
-        self.layer1 = nn.Linear(1, 1)
 
     def forward(self, x):
-        return self.layer1(x)
+        pass
+    
+class VGG16Wrapper(nn.Module):
+    def __init__(self, **kwargs):
+        super().__init__()
+        self.kwargs = kwargs
+        self.vgg16 = vgg16(weights=None, progress=True).features[:]
+        self.linear = nn.Linear(512*7*7, 10)
+        self.flatten = nn.Flatten()
         
 
-
-def configure_optimizers(self):
-    optimizer = optim.AdamW(self.parameters(), lr=self.hparams.lr)
-    lr_scheduler = optim.lr_scheduler.MultiStepLR(
-        optimizer, milestones=[100, 150], gamma=0.1
-    )
-    return [optimizer], [lr_scheduler]
+    def forward(self, x):
+        return self.linear(self.flatten(self.vgg16(x)))
