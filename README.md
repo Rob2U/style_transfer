@@ -165,14 +165,31 @@ input x is a low-resolution input, the content target y_c is the ground-truth hi
     Training on ***MS-Coco*** dataset resize to 256x256, batchsize 4, for 40k iterations ($\approx 2$ Epochs). Adam with lr 1x10^-3
     
     The output images are regular- ized with total variation regularization with a strength of between 1 × 10−6 and 1×10−4, chosen via cross-validation per style target ???????
+
+
     
     For all style transfer experiments we compute feature reconstruction loss at layer relu3_3 and style reconstruction loss at layers relu1_2, relu2_2, relu3_3, and relu4_3 of the VGG-16 loss network $\varphi$.
     
+    ***Total Variation Regularization:***
+
+
+
 
 ### Useful Material:
 
-[Paper Supplementary Material](https://cs.stanford.edu/people/jcjohns/papers/fast-style/fast-style-supp.pdf)
+[Overview -> useful section 4.2.1](https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=8732370)
 
-[COCO torch dataset](https://medium.com/howtoai/pytorch-torchvision-coco-dataset-b7f5e8cad82)
+[Johnson et al. Paper](https://cs.stanford.edu/people/jcjohns/papers/eccv16/JohnsonECCV16.pdf)
 
-[COCO torch docs](https://pytorch.org/vision/stable/_modules/torchvision/datasets/coco.html)
+[Johnson et al. Supplementary Material](https://cs.stanford.edu/people/jcjohns/papers/fast-style/fast-style-supp.pdf)
+
+[Ulyanov et al. ]()
+
+[Ulyanov et al. -> Instance Normalization](https://arxiv.org/pdf/1607.08022.pdf)
+
+[Ulyanov et al. -> Improved Texture Networks](https://arxiv.org/pdf/1701.02096.pdf)
+
+[Medium Article on Loss Functions for Computer Vision](https://medium.com/ml-cheat-sheet/winning-at-loss-functions-2-important-loss-functions-in-computer-vision-b2b9d293e15a)
+
+[Total Variation Regularization](https://arxiv.org/pdf/1412.0035.pdf) 
+[Total Variation implementation TorchMetrics](https://torchmetrics.readthedocs.io/en/stable/image/total_variation.html)

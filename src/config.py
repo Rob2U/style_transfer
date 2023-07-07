@@ -16,7 +16,7 @@ TEST_RATIO = 0.1
 
 
 # Compute related
-ACCELERATOR = "cuda" # "gpu" or "cpu
+ACCELERATOR = "cpu" # "gpu" or "cpu
 
 # Path to the folder where the pretrained models are saved / will be saved
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")

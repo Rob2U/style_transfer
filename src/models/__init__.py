@@ -1,1 +1,1 @@
-from .model import *
+from .johnson_model import *

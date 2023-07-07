@@ -2,53 +2,63 @@ import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torchvision import transforms
-from torchvision.datasets import MNIST
 
-from src.config import ACCELERATOR
+import pandas as pd
+import os
+from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
 
-class TorchDataset(Dataset):
-    def __init__(self, train, transform, download):
-        super().__init__()
-        self.train = train
+from src.config import ACCELERATOR   
+        
+    
+class COCOImageDatset(Dataset): # might consider loading multiple images of the same style for better generalization
+    def __init__(self, root, style_image_path, transform):
+        self.root = root
         self.transform = transform
-        self.download = download    
+        
+        # load images from root directory in dataframe 
+        imgs = list(sorted(os.listdir(self.root)))
+        self.images = np.asarray(imgs)
+        np.random.shuffle(self.images)
+        
+        # load style image
+        self.style_image = Image.open(style_image_path).convert("RGB")
+        self.style_image = self.transform(self.style_image)
+        print(self.style_image.shape)
         
     def __len__(self):
-        pass
+        return len(self.images)
     
     def __getitem__(self, index):
-        pass
-    
-    def __download__(self):
-        pass
-    
-    
-class MNISTWrapper(MNIST):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-    
-    def __getitem__(self, index):
-        img, lbl = super().__getitem__(index)
-        #print(img)
-        img = img.float()
-        img = torch.cat((img, img, img), dim=0)
-        img = img.reshape(3, 224, 224)
-        img = img.to(ACCELERATOR)
+        image_path = os.path.join(self.root, self.images[index])
+        image = Image.open(image_path).convert("RGB")
+        image = self.transform(image)
+        print(image.shape)
         
-        return img, lbl
+        return image, self.style_image
+
 
 def train_transform():
-    return transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Resize(224, antialias=True),
-    ])
+    return transforms.Compose(
+        [
+            #crop 224x224
+            transforms.Resize(224),
+            transforms.RandomCrop((224, 224)),
+            transforms.ToTensor(),
+        ]
+    )
+
 
 def test_transform():
-    return transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Resize(224, antialias=True),
-        
-    ])
+    return transforms.Compose(
+        {
+            transforms.Resize(224),
+            transforms.RandomCrop((224, 224)),
+            transforms.ToTensor(),
+        }
+    )
+    
 
 
 def perform_train_val_test_split(dataset, data_dir, train_size, val_size, test_size):
@@ -87,3 +97,18 @@ def perform_train_val_test_split(dataset, data_dir, train_size, val_size, test_s
         _, val_ds = torch.utils.data.random_split(train_set, [train_set_size, val_set_size])
 
         return train_ds, val_ds, test_ds
+
+
+if __name__ == "__main__":
+    # test dataset
+    dataset = COCOImageDatset(
+        root="/Users/robert/Desktop/style_transfer/style_transfer/data/train2017",
+        style_image_path="/Users/robert/Desktop/style_transfer/style_transfer/style_images/style1.jpeg",
+        transform=train_transform(),
+    )
+    ax, fig = plt.subplots(2)
+    fig[0].imshow(dataset[0][0].permute(1, 2, 0))
+    fig[1].imshow(dataset[0][1].permute(1, 2, 0))
+    plt.show()
+    
+        

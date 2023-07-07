@@ -13,7 +13,7 @@ import os
 import datetime
 
 from .trainer import Trainer, configure_optimizer
-from .dataset import perform_train_val_test_split, TorchDataset, MNISTWrapper
+from .dataset import perform_train_val_test_split, COCOImageDatset
 from .models import VGG16Wrapper
 from .config import (
     LEARNING_RATE,
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     
     # load dataset and create dataloaders
     train_ds, val_ds, test_ds = perform_train_val_test_split(
-        MNISTWrapper,
+        COCOImageDatset,
         DATA_DIR,
         TRAIN_RATIO,
         VAL_RATIO, 
