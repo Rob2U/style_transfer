@@ -3,21 +3,21 @@ import torch
 from tqdm import tqdm
 from torch import optim
 
-from torch.nn import CrossEntropyLoss, Softmax
 
 from torchmetrics import Accuracy
-
+from .loss import calculate_loss
+from .config import ALPHA, BETA, GAMMA
 
 class Trainer:
     def __init__(self, model, optimizer, log_function, accelerator, *args, **kwargs):
         self.accelerator = accelerator
         self.model = model
         self.model.to(self.accelerator)
-        self.accuracy = Accuracy(task='multiclass', num_classes=10)
-        self.accuracy.to(self.accelerator)
         
         self.optimizer = optimizer
         self.log_function = log_function # TODO: add logging for desired metrics
+        
+        
         
         # a list for saving the best models
         self.best_model = None
@@ -40,7 +40,7 @@ class Trainer:
         # use tqdm progress bar as wrapper for the data loader
         with tqdm(dataiter, bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
             # iterate through epoch by iterating through the data loader
-            for batch_data, batch_lbl in pbar:
+            for batch_image, batch_style in pbar:
                 
                 # set progress bar description
                 pbar.set_description(f"Training Epoch {current_epoch}")
@@ -48,10 +48,10 @@ class Trainer:
                 #reset gradients
                 self.optimizer.zero_grad()
 
-                out = self.model(batch_data)
+                out = self.model(batch_image)
                 
                 #calculate the loss
-                loss = self.train_loss_per_step(out, batch_lbl)
+                loss = self.train_loss_per_step(out, batch_style, batch_image)
                 self.log_function({"train_loss": loss.item()})
                 
                 batch_losses.append(loss.item())
@@ -72,11 +72,9 @@ class Trainer:
                 "losses": losses,
             }
     
-    def train_loss_per_step(self, out, batch_lbl):
-        # define the loss fn
-        batch_lbl = batch_lbl.to(self.accelerator)
-        loss_fn = CrossEntropyLoss()
-        return loss_fn(out, batch_lbl)
+    def train_loss_per_step(self, out_batch, style_batch, original_batch):
+        loss_fn = calculate_loss
+        return loss_fn(ALPHA, BETA, GAMMA, out_batch, style_batch, original_batch)
         
  
     @torch.no_grad()
@@ -89,45 +87,35 @@ class Trainer:
         # reset iterator
         dataiter = iter(val_loader)
         
+        counter = 0
+        
         # use tqdm progress bar as wrapper for the data loader
         with tqdm(dataiter, bar_format='{l_bar}{bar:10}{r_bar}') as pbar:
             # iterate through epoch by iterating through the data loader
-            for batch_data,batch_lbl in pbar:
+            for batch_image, batch_style in pbar:
                 # set progress bar description
                 pbar.set_description(f"Validation Epoch {current_epoch}")
                 
-                out = self.model(batch_data)
-                loss = self.validation_loss_per_step(out, batch_lbl)
+                out = self.model(batch_image)
+                loss = self.validation_loss_per_step(out, batch_style, batch_image)
                 
-                outputs.append(out)
-                labels.append(batch_lbl)
-                losses.append(loss.item())
+                if counter % 1000 == 0:
+                    outputs.append(out)
+                    labels.append([batch_image, batch_style])
+                    losses.append(loss.item())
                 
                 self.log_function({"val_loss": loss.item()})
-                losses.append(loss)
+                losses.append(loss.item())
                 
                 # set progress bar stats
                 pbar.set_postfix(loss=loss)
                 
         self.on_val_epoch_end(outputs, losses)
-        self.validation_loss_per_epoch(outputs, labels)
         
     
-    def validation_loss_per_step(self, out, batch_lbl):
-        # depending on what shall be logged during validation, this function can be overwritten
-        batch_lbl = batch_lbl.to(self.accelerator)
-        loss_fn = CrossEntropyLoss()
-        return loss_fn(out, batch_lbl)
-    
-    def validation_loss_per_epoch(self, outputs, labels):
-        labels = torch.cat(labels)
-        labels = labels.to(self.accelerator)
-        outputs = torch.cat(outputs)
-        outputs = Softmax(dim=1)(outputs)
-        
-        acc = self.accuracy(outputs, labels).item()
-        
-        self.log_function({"val_acc": acc})
+    def validation_loss_per_step(self, out_batch, style_batch, original_batch):
+        loss_fn = calculate_loss
+        return loss_fn(ALPHA, BETA, GAMMA, out_batch, style_batch, original_batch)
 
     
 def configure_optimizer(model, learning_rate):

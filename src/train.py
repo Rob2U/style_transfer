@@ -14,7 +14,7 @@ import datetime
 
 from .trainer import Trainer, configure_optimizer
 from .dataset import perform_train_val_test_split, COCOImageDatset
-from .models import VGG16Wrapper
+from .models import JohnsonsImageTransformNet
 from .config import (
     LEARNING_RATE,
     DATA_DIR,
@@ -26,15 +26,14 @@ from .config import (
     CHECKPOINT_PATH,
     ACCELERATOR,
     RUN_NAME,
+    STYLE_IMAGE_PATH,
 )
+
 import wandb
 
 def train_model(model_class, train_dl, val_dl):
     # configure model
-    model = model_class(
-            **{ # add all model related hyperparameters here
-            }
-     )
+    model = model_class()
     model = model.to(ACCELERATOR)
         
     # configure the trainer
@@ -86,6 +85,7 @@ if __name__ == "__main__":
     train_ds, val_ds, test_ds = perform_train_val_test_split(
         COCOImageDatset,
         DATA_DIR,
+        STYLE_IMAGE_PATH,
         TRAIN_RATIO,
         VAL_RATIO, 
         TEST_RATIO
@@ -98,6 +98,6 @@ if __name__ == "__main__":
     
     
     # train the model
-    model = train_model(VGG16Wrapper, train_dl, val_dl)
+    model = train_model(JohnsonsImageTransformNet, train_dl, val_dl)
     
     # test the model TODO: implement test function

@@ -19,13 +19,15 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         
         # load images from root directory in dataframe 
         imgs = list(sorted(os.listdir(self.root)))
+        
+        np.random.seed(42)
         self.images = np.asarray(imgs)
         np.random.shuffle(self.images)
         
         # load style image
         self.style_image = Image.open(style_image_path).convert("RGB")
         self.style_image = self.transform(self.style_image)
-        print(self.style_image.shape)
+        # print(self.style_image.shape)
         
     def __len__(self):
         return len(self.images)
@@ -34,7 +36,7 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         image_path = os.path.join(self.root, self.images[index])
         image = Image.open(image_path).convert("RGB")
         image = self.transform(image)
-        print(image.shape)
+        # print(image.shape)
         
         return image, self.style_image
 
@@ -61,22 +63,20 @@ def test_transform():
     
 
 
-def perform_train_val_test_split(dataset, data_dir, train_size, val_size, test_size):
+def perform_train_val_test_split(dataset, data_dir, style_image_path, train_size, val_size, test_size):
         if train_size + val_size + test_size != 1:
             raise ValueError("train_size + val_size + test_size must equal 1")
         
         dataset_train = dataset(
             root=data_dir,
-            train=True,
+            style_image_path=style_image_path,
             transform=train_transform(),
-            download=True,
         )
         
         dataset_test = dataset(
             root=data_dir,
-            train=True,
+            style_image_path=style_image_path,
             transform=test_transform(),
-            download=True,
         )
         
         dataset_size = len(dataset_train) # replace with actual dataset size

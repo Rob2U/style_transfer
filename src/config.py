@@ -5,11 +5,15 @@ from datetime import datetime
 
 # Training hyperparameters
 LEARNING_RATE = 3e-5
-BATCH_SIZE = 32
+BATCH_SIZE = 8
 EPOCHS = 1
+ALPHA = 1e-6
+BETA = 0.75
+GAMMA = 0.1
 
 # Dataset related
-DATA_DIR = os.path.join(os.getcwd(), "data")
+DATA_DIR = os.path.join(os.getcwd(), "data", "train2017")
+STYLE_IMAGE_PATH = os.path.join(os.getcwd(), "style_images", "style1.jpeg")
 TRAIN_RATIO = 0.8
 VAL_RATIO = 0.1
 TEST_RATIO = 0.1
