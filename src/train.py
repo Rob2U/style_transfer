@@ -96,7 +96,7 @@ if __name__ == "__main__":
     val_dl = data.DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
     test_dl = data.DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
     
-    
+    torch.autograd.set_detect_anomaly(True)
     # train the model
     model = train_model(JohnsonsImageTransformNet, train_dl, val_dl)
     

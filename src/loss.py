@@ -11,8 +11,11 @@ class VGG16Pretrained(nn.Module):
         super().__init__()
         self.kwargs = kwargs
         self.vgg16 = vgg16(weights=VGG16_Weights.DEFAULT, progress=True).features[:]
+        self.to(ACCELERATOR)
+        self.vgg16.eval()
+        self.vgg16.requires_grad_(False)
+        self.vgg16.to(ACCELERATOR)
     
-    @torch.no_grad()
     def forward(self, x):
         relu1_2_out = self.vgg16[0:3](x)
         relu2_2_out = self.vgg16[3:8](relu1_2_out)
@@ -23,6 +26,7 @@ class VGG16Pretrained(nn.Module):
         
 def _total_variation_reg(x):
     tv = TotalVariation()
+    tv.to(ACCELERATOR)
     return tv(x)
 
 def _gram_matrix(x):
@@ -65,15 +69,15 @@ def calculate_loss(alpha, beta, gamma, generated_image, style_image, original_im
     feature_loss = _feature_loss(generated_image_relu3_3, original_image_relu3_3)
     
     # Style Loss
-    style_loss = _style_loss(generated_image_relu1_2, style_image_relu1_2)
-    style_loss += _style_loss(generated_image_relu2_2, style_image_relu2_2)
-    style_loss += _style_loss(generated_image_relu3_3, style_image_relu3_3)
-    style_loss += _style_loss(generated_image_relu4_3, style_image_relu4_3)
+    style_loss1 = _style_loss(generated_image_relu1_2, style_image_relu1_2)
+    style_loss2 = _style_loss(generated_image_relu2_2, style_image_relu2_2)
+    style_loss3 = _style_loss(generated_image_relu3_3, style_image_relu3_3)
+    style_loss4 = _style_loss(generated_image_relu4_3, style_image_relu4_3)
     
     # Total Variation Regularization
     total_var_reg = _total_variation_reg(generated_image)
     
-    loss = alpha * feature_loss + beta * style_loss + gamma * total_var_reg
+    loss = alpha * feature_loss + beta * (style_loss1 + style_loss2 + style_loss3 + style_loss4) + gamma * total_var_reg
     #print("Loss: ", loss)
     loss = torch.mean(loss)
     
@@ -100,16 +104,17 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     
     dataset = src.dataset.COCOImageDatset(
-        root="/Users/robert/Desktop/style_transfer/style_transfer/data/train2017",
-        style_image_path="/Users/robert/Desktop/style_transfer/style_transfer/style_images/style1.jpeg",
+        root="data/train2017/train2017/",
+        style_image_path="style_images/style3.jpg",
         transform=src.dataset.train_transform(),
     )
     img, style = dataset[0]
     
-    ax, fig = plt.subplots(2)
-    fig[0].imshow(dataset[0][0].permute(1, 2, 0))
-    fig[1].imshow(dataset[0][1].permute(1, 2, 0))
-    plt.show()
+    # ax, fig = plt.subplots(2)
+    # fig[0].imshow(dataset[0][0].permute(1, 2, 0))
+    # fig[1].imshow(dataset[0][1].permute(1, 2, 0))
+    # plt.show()
     
     print(calculate_loss(1, 1, 1, img.unsqueeze(0), style.unsqueeze(0), img.unsqueeze(0)))
+    
     

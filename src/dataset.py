@@ -26,19 +26,23 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         
         # load style image
         self.style_image = Image.open(style_image_path).convert("RGB")
-        self.style_image = self.transform(self.style_image)
+        # self.style_image = self.transform(self.style_image)
         # print(self.style_image.shape)
         
     def __len__(self):
-        return len(self.images)
+        # return len(self.images)
+        return 2000 # reduce dataset size for testing
     
     def __getitem__(self, index):
         image_path = os.path.join(self.root, self.images[index])
         image = Image.open(image_path).convert("RGB")
         image = self.transform(image)
+        image = image.to(ACCELERATOR)
         # print(image.shape)
+        style_image = self.transform(self.style_image).to(ACCELERATOR)
         
-        return image, self.style_image
+        return image, style_image
+        
 
 
 def train_transform():
