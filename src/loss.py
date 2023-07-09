@@ -22,6 +22,18 @@ class VGG16Pretrained(nn.Module):
         relu3_3_out = self.vgg16[8:15](relu2_2_out)
         relu4_3_out = self.vgg16[15:22](relu3_3_out)
         return relu1_2_out, relu2_2_out, relu3_3_out, relu4_3_out
+    
+    def get_relu_1_2(self, x):
+        return self.vgg16[0:3](x)
+    
+    def get_relu_2_2(self, x):
+        return self.vgg16[0:8](x)
+    
+    def get_relu_3_3(self, x):
+        return self.vgg16[0:15](x)
+    
+    def get_relu_4_3(self, x):
+        return self.vgg16[0:22](x)
         
         
 def _total_variation_reg(x):
@@ -57,22 +69,27 @@ def _feature_loss(x,y):
     # print("Feature_loss shape: ", x_norm.shape)
     return x_norm
 
+
+
 def calculate_loss(alpha, beta, gamma, generated_image, style_image, original_image):
     style_image = style_image.to(ACCELERATOR)
     original_image = original_image.to(ACCELERATOR)
     
     generated_image_relu1_2, generated_image_relu2_2, generated_image_relu3_3, generated_image_relu4_3 = VGG16Pretrained()(generated_image)
-    style_image_relu1_2, style_image_relu2_2, style_image_relu3_3, style_image_relu4_3 = VGG16Pretrained()(style_image)
-    _, _, original_image_relu3_3, _ = VGG16Pretrained()(original_image)
+    
+    if calculate_loss.style_image_relu1_2 is None:
+        calculate_loss.style_image_relu1_2, calculate_loss.style_image_relu2_2, calculate_loss.style_image_relu3_3, calculate_loss.style_image_relu4_3 = VGG16Pretrained()(style_image)
+
+    original_image_relu3_3 = VGG16Pretrained().get_relu_3_3(original_image)
     
     # Feature Loss
     feature_loss = _feature_loss(generated_image_relu3_3, original_image_relu3_3)
     
     # Style Loss
-    style_loss1 = _style_loss(generated_image_relu1_2, style_image_relu1_2)
-    style_loss2 = _style_loss(generated_image_relu2_2, style_image_relu2_2)
-    style_loss3 = _style_loss(generated_image_relu3_3, style_image_relu3_3)
-    style_loss4 = _style_loss(generated_image_relu4_3, style_image_relu4_3)
+    style_loss1 = _style_loss(generated_image_relu1_2, calculate_loss.style_image_relu1_2)
+    style_loss2 = _style_loss(generated_image_relu2_2, calculate_loss.style_image_relu2_2)
+    style_loss3 = _style_loss(generated_image_relu3_3, calculate_loss.style_image_relu3_3)
+    style_loss4 = _style_loss(generated_image_relu4_3, calculate_loss.style_image_relu4_3)
     
     # Total Variation Regularization
     total_var_reg = _total_variation_reg(generated_image)
@@ -82,7 +99,10 @@ def calculate_loss(alpha, beta, gamma, generated_image, style_image, original_im
     loss = torch.mean(loss)
     
     return loss
-    
+calculate_loss.style_image_relu1_2 = None
+calculate_loss.style_image_relu2_2 = None
+calculate_loss.style_image_relu3_3 = None
+calculate_loss.style_image_relu4_3 = None
     
     
 if __name__ == "__main__":
@@ -104,16 +124,16 @@ if __name__ == "__main__":
     import matplotlib.pyplot as plt
     
     dataset = src.dataset.COCOImageDatset(
-        root="data/train2017/train2017/",
-        style_image_path="style_images/style3.jpg",
+        root="data/train2017/",
+        style_image_path="style_images/style5.jpg",
         transform=src.dataset.train_transform(),
     )
     img, style = dataset[0]
     
-    # ax, fig = plt.subplots(2)
-    # fig[0].imshow(dataset[0][0].permute(1, 2, 0))
-    # fig[1].imshow(dataset[0][1].permute(1, 2, 0))
-    # plt.show()
+    ax, fig = plt.subplots(2)
+    fig[0].imshow(dataset[0][0].permute(1, 2, 0))
+    fig[1].imshow(dataset[0][1].permute(1, 2, 0))
+    plt.show()
     
     print(calculate_loss(1, 1, 1, img.unsqueeze(0), style.unsqueeze(0), img.unsqueeze(0)))
     
