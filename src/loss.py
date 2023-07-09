@@ -37,36 +37,26 @@ class VGG16Pretrained(nn.Module):
         
         
 def _total_variation_reg(x):
-    tv = TotalVariation()
-    tv.to(ACCELERATOR)
-    return tv(x)
+    if _total_variation_reg.tv is None:
+        _total_variation_reg.tv = TotalVariation()
+        _total_variation_reg.tv.to(ACCELERATOR)
+    return torch.mean(_total_variation_reg.tv(x)) # b, c, h, w -> b, 1 -> 1
+_total_variation_reg.tv = None
 
 def _gram_matrix(x):
     b, c, h, w = x.shape
     x = x.view(b, c, h*w)
-    x_t = x.transpose(-1, -2)
     
-    return torch.bmm(x, x_t) / (c * h * w)
+    return torch.bmm(x, x.transpose(-1, -2)) / (c * h * w)
 
 def _style_loss(x,y):
     gram_x = _gram_matrix(x) # b, c, c
     gram_y = _gram_matrix(y) # b, c, c
-    diff = gram_x - gram_y # b, c, c
-    # now we need to calculate the euclidean norm over the c X c dimensions
-    diff_norm = torch.linalg.norm(diff, ord=2, dim=(1,2))
-    # print("Style_loss shape: ", diff_norm.shape)
-    return diff_norm
+
+    return torch.mean((gram_x - gram_y)**2) # b, c, c -> b, c, c -> 1
 
 def _feature_loss(x,y):
-    b, c, h, w = x.shape
-    diff = x - y
-    # calculate the euclidean norm over the c X h X w dimensions
-    x_norm_w = torch.linalg.norm(diff, ord=2, dim=(3))
-    x_norm_h = torch.linalg.norm(x_norm_w, ord=2, dim=(2))
-    x_norm_c = torch.linalg.norm(x_norm_h, ord=2, dim=(1))
-    
-    x_norm = x_norm_c**2 / (c * h * w)
-    # print("Feature_loss shape: ", x_norm.shape)
+    x_norm = torch.mean((x - y)**2) # b, c, h, w -> 1
     return x_norm
 
 
@@ -96,7 +86,7 @@ def calculate_loss(alpha, beta, gamma, generated_image, style_image, original_im
     
     loss = alpha * feature_loss + beta * (style_loss1 + style_loss2 + style_loss3 + style_loss4) + gamma * total_var_reg
     #print("Loss: ", loss)
-    loss = torch.mean(loss)
+    # loss = torch.mean(loss) -> unnecessary because loss is already a scalar
     
     return loss
 calculate_loss.style_image_relu1_2 = None

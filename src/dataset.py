@@ -31,7 +31,7 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         
     def __len__(self):
         #return len(self.images)
-        return len(self.images) # reduce dataset size for testing
+        return 1000
     
     def __getitem__(self, index):
         image_path = os.path.join(self.root, self.images[index])

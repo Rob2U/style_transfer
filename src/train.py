@@ -105,13 +105,17 @@ if __name__ == "__main__":
     model.eval()
     
     # model = run_pretrained_model(
-    #     "checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-08_22-37-00.pth",
+    #     "checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-09_12-25-48.pth",
     #     JohnsonsImageTransformNet
     # )
-    # model = model.to(ACCELERATOR)
-    # image_to_style = Image.open("test_images/test1.jpg")
+    model = model.to(ACCELERATOR)
+    image_to_style = Image.open("test_images/test1.jpg")
     image_to_style = Image.open("test_images/000000436138.jpg")
     image_transformed = test_transform()(image_to_style)
+    img_crop = transforms.ToPILImage()(image_transformed.squeeze(0).cpu())
+    img_crop \
+        .save("test_images/test1_crop.jpg")
+    
     result = model(image_transformed.unsqueeze(0).to(ACCELERATOR))
 
     result_image = transforms.ToPILImage()(result.squeeze(0).cpu())
