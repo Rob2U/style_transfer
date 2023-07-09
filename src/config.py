@@ -12,7 +12,7 @@ BETA = 1
 GAMMA = 0 # 1e-6
 
 # Dataset related
-DATA_DIR = os.path.join(os.getcwd(), "data", "train2017")
+DATA_DIR = os.path.join(os.getcwd(), "data","train2017" ,"train2017")
 STYLE_IMAGE_PATH = os.path.join(os.getcwd(), "style_images", "style5.jpg")
 TRAIN_RATIO = 1
 VAL_RATIO = 0
@@ -20,7 +20,7 @@ TEST_RATIO = 0
 
 
 # Compute related
-ACCELERATOR = "cpu" # "gpu" or "cpu
+ACCELERATOR = "cuda" # "gpu" or "cpu
 
 # Path to the folder where the pretrained models are saved / will be saved
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
