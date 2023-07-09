@@ -76,7 +76,6 @@ class Trainer:
         loss_fn = calculate_loss
         return loss_fn(ALPHA, BETA, GAMMA, out_batch, style_batch, original_batch)
         
- 
     @torch.no_grad()
     def validate_epoch(self, val_loader, current_epoch):
         # save model output and loss for later metrics
@@ -108,7 +107,7 @@ class Trainer:
                 losses.append(loss.item())
                 
                 # set progress bar stats
-                pbar.set_postfix(loss=loss)
+                pbar.set_postfix(loss=loss.item())
                 
         self.on_val_epoch_end(outputs, losses)
         

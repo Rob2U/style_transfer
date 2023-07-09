@@ -15,7 +15,7 @@ from src.config import ACCELERATOR
 class COCOImageDatset(Dataset): # might consider loading multiple images of the same style for better generalization
     def __init__(self, root, style_image_path, transform):
         self.root = root
-        self.transform = transform
+        self.transform = train_transform()
         
         # load images from root directory in dataframe 
         imgs = list(sorted(os.listdir(self.root)))
@@ -30,15 +30,18 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         # print(self.style_image.shape)
         
     def __len__(self):
-        # return len(self.images)
-        return 2000 # reduce dataset size for testing
+        #return len(self.images)
+        return len(self.images) # reduce dataset size for testing
     
     def __getitem__(self, index):
         image_path = os.path.join(self.root, self.images[index])
         image = Image.open(image_path).convert("RGB")
         image = self.transform(image)
         image = image.to(ACCELERATOR)
-        # print(image.shape)
+        
+        if image.shape[1] != 224 and image.shape[2] != 224:
+            print("Image shape: ", image.shape)
+        
         style_image = self.transform(self.style_image).to(ACCELERATOR)
         
         return image, style_image
@@ -49,7 +52,7 @@ def train_transform():
     return transforms.Compose(
         [
             #crop 224x224
-            transforms.Resize(224),
+            transforms.Resize(224, antialias=True),
             transforms.RandomCrop((224, 224)),
             transforms.ToTensor(),
         ]
@@ -59,7 +62,7 @@ def train_transform():
 def test_transform():
     return transforms.Compose(
         {
-            transforms.Resize(224),
+            transforms.Resize(224, antialias=True),
             transforms.RandomCrop((224, 224)),
             transforms.ToTensor(),
         }

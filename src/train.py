@@ -6,6 +6,7 @@ import torch.optim as optim
 import torch.utils.data as data
 import torchvision
 from torchvision import transforms
+import PIL.Image as Image
 
 #from torchvision.datasets import MNIST # test template
 
@@ -13,7 +14,7 @@ import os
 import datetime
 
 from .trainer import Trainer, configure_optimizer
-from .dataset import perform_train_val_test_split, COCOImageDatset
+from .dataset import perform_train_val_test_split, COCOImageDatset, test_transform
 from .models import JohnsonsImageTransformNet
 from .config import (
     LEARNING_RATE,
@@ -50,7 +51,8 @@ def train_model(model_class, train_dl, val_dl):
 def run_pretrained_model(pretrained_filename, model_class):
     print("Loading pretrained model from %s..." % pretrained_filename)
     # Automatically loads the model with the saved hyperparameters
-    model = model_class.load_from_checkpoint(pretrained_filename)
+    model = model_class()
+    model.load_state_dict(torch.load(pretrained_filename))
     
     return model
 
@@ -91,13 +93,30 @@ if __name__ == "__main__":
         TEST_RATIO
     )
     
-    # create dataloaders
+    # # create dataloaders
     train_dl = data.DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
     val_dl = data.DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
     test_dl = data.DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
     
-    torch.autograd.set_detect_anomaly(True)
+    # torch.autograd.set_detect_anomaly(True)
     # train the model
     model = train_model(JohnsonsImageTransformNet, train_dl, val_dl)
+    
+    model.eval()
+    
+    # model = run_pretrained_model(
+    #     "checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-08_22-37-00.pth",
+    #     JohnsonsImageTransformNet
+    # )
+    # model = model.to(ACCELERATOR)
+    # image_to_style = Image.open("test_images/test1.jpg")
+    image_to_style = Image.open("test_images/000000436138.jpg")
+    image_transformed = test_transform()(image_to_style)
+    result = model(image_transformed.unsqueeze(0).to(ACCELERATOR))
+
+    result_image = transforms.ToPILImage()(result.squeeze(0).cpu())
+    # save the result
+    result_image \
+        .save("test_images/test1_result.jpg")
     
     # test the model TODO: implement test function
