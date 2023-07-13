@@ -31,7 +31,7 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         
     def __len__(self):
         #return len(self.images)
-        return 1000
+        return 320
     
     def __getitem__(self, index):
         image_path = os.path.join(self.root, self.images[index])
@@ -39,7 +39,7 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         image = self.transform(image)
         image = image.to(ACCELERATOR)
         
-        if image.shape[1] != 224 and image.shape[2] != 224:
+        if image.shape[1] != 256 and image.shape[2] != 256:
             print("Image shape: ", image.shape)
         
         style_image = self.transform(self.style_image).to(ACCELERATOR)
@@ -51,9 +51,9 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
 def train_transform():
     return transforms.Compose(
         [
-            #crop 224x224
-            transforms.Resize(224, antialias=True),
-            transforms.RandomCrop((224, 224)),
+            #crop x256x256
+            transforms.Resize(256, antialias=True),
+            transforms.RandomCrop((256, 256)),
             transforms.ToTensor(),
         ]
     )
@@ -62,8 +62,8 @@ def train_transform():
 def test_transform():
     return transforms.Compose(
         {
-            transforms.Resize(224, antialias=True),
-            transforms.RandomCrop((224, 224)),
+            transforms.Resize(256, antialias=True),
+            transforms.RandomCrop((256, 256)),
             transforms.ToTensor(),
         }
     )

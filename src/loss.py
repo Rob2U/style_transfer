@@ -43,17 +43,21 @@ def _total_variation_reg(x):
     return torch.mean(_total_variation_reg.tv(x)) # b, c, h, w -> b, 1 -> 1
 _total_variation_reg.tv = None
 
-def _gram_matrix(x):
+def _gram_matrix1(x):
     b, c, h, w = x.shape
-    x = x.view(b, c, h*w)
-    
-    return torch.bmm(x, x.transpose(-1, -2)) / (c * h * w)
+    x = x.view(b, c, h*w) 
+    return torch.bmm(x, x.transpose(-1, -2)).div(c * h * w) # b,c, h*w -> b, c, c
 
+def _gram_matrix(x):
+    b ,c, h, w = x.size()
+    g = torch.bmm(x.view(b, c, h*w), x.view(b, c, h*w).transpose(1,2))
+    return g.div(h*w)
+
+mse = torch.nn.MSELoss(reduction='mean')
 def _style_loss(x,y):
     gram_x = _gram_matrix(x) # b, c, c
     gram_y = _gram_matrix(y) # b, c, c
-
-    return torch.mean((gram_x - gram_y)**2) # b, c, c -> b, c, c -> 1
+    return mse(gram_y, gram_x) # b, c, c -> 1
 
 def _feature_loss(x,y):
     x_norm = torch.mean((x - y)**2) # b, c, h, w -> 1
@@ -67,22 +71,26 @@ def calculate_loss(alpha, beta, gamma, generated_image, style_image, original_im
     
     generated_image_relu1_2, generated_image_relu2_2, generated_image_relu3_3, generated_image_relu4_3 = VGG16Pretrained()(generated_image)
     
-    if calculate_loss.style_image_relu1_2 is None:
+    if calculate_loss.style_image_relu1_2 is None or generated_image_relu1_2.shape != calculate_loss.style_image_relu1_2.shape:
         calculate_loss.style_image_relu1_2, calculate_loss.style_image_relu2_2, calculate_loss.style_image_relu3_3, calculate_loss.style_image_relu4_3 = VGG16Pretrained()(style_image)
 
     original_image_relu3_3 = VGG16Pretrained().get_relu_3_3(original_image)
     
     # Feature Loss
     feature_loss = _feature_loss(generated_image_relu3_3, original_image_relu3_3)
+    # print("Feature Loss: ", feature_loss)
     
     # Style Loss
-    style_loss1 = _style_loss(generated_image_relu1_2, calculate_loss.style_image_relu1_2)
-    style_loss2 = _style_loss(generated_image_relu2_2, calculate_loss.style_image_relu2_2)
-    style_loss3 = _style_loss(generated_image_relu3_3, calculate_loss.style_image_relu3_3)
-    style_loss4 = _style_loss(generated_image_relu4_3, calculate_loss.style_image_relu4_3)
+    style_loss1 = _style_loss(generated_image_relu1_2, torch.zeros(generated_image_relu1_2.shape, device=ACCELERATOR) + calculate_loss.style_image_relu1_2)
+    style_loss2 = _style_loss(generated_image_relu2_2, torch.zeros(generated_image_relu2_2.shape, device=ACCELERATOR) + calculate_loss.style_image_relu2_2)
+    style_loss3 = _style_loss(generated_image_relu3_3, torch.zeros(generated_image_relu3_3.shape, device=ACCELERATOR) + calculate_loss.style_image_relu3_3)
+    style_loss4 = _style_loss(generated_image_relu4_3, torch.zeros(generated_image_relu4_3.shape, device=ACCELERATOR) + calculate_loss.style_image_relu4_3)
+    
+    # print("Style Loss: ", style_loss1, style_loss2, style_loss3, style_loss4)
     
     # Total Variation Regularization
     total_var_reg = _total_variation_reg(generated_image)
+    # print("Total Variation Regularization: ", total_var_reg)
     
     loss = alpha * feature_loss + beta * (style_loss1 + style_loss2 + style_loss3 + style_loss4) + gamma * total_var_reg
     #print("Loss: ", loss)
@@ -96,19 +104,19 @@ calculate_loss.style_image_relu4_3 = None
     
     
 if __name__ == "__main__":
-    # vgg16 = VGG16Pretrained()
-    # x = torch.randn(1, 3, 256, 256)
-    # print(vgg16(x).shape)
+    vgg16model = VGG16Pretrained()
+    x = torch.randn(1, 3, 256, 256)
+    print(vgg16model(x))
     
-    # print(total_variation_reg(x))
+    print(_total_variation_reg(x))
     
-    #summary(vgg16, (3, 256, 256), device="cpu")
+    summary(vgg16model, (3, 256, 256), device="cpu")
     
-    # x = torch.randn(10, 3, 256, 256)
-    # x2 = torch.randn(10, 3, 256, 256)
-    # x3 = torch.randn(10, 3, 256, 256)
+    x = torch.randn(10, 3, 256, 256)
+    x2 = torch.randn(10, 3, 256, 256)
+    x3 = torch.randn(10, 3, 256, 256)
     
-    # print(calculate_loss(1, 1, 1, x, x2, x3))
+    print(calculate_loss(1, 1, 1, x, x2, x3))
     
     import src.dataset
     import matplotlib.pyplot as plt

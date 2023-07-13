@@ -6,10 +6,10 @@ from datetime import datetime
 # Training hyperparameters
 LEARNING_RATE = 1e-3
 BATCH_SIZE = 4
-EPOCHS = 5
+EPOCHS = 1
 ALPHA = 1e-3
-BETA = 1
-GAMMA = 1e-5
+BETA = 0
+GAMMA = 0 #1e-7
 
 # Dataset related
 DATA_DIR = os.path.join(os.getcwd(), "data" ,"train2017")
@@ -20,7 +20,7 @@ TEST_RATIO = 0
 
 
 # Compute related
-ACCELERATOR = "cpu" # "gpu" or "cpu
+ACCELERATOR = "mps" # "gpu" or "cpu
 
 # Path to the folder where the pretrained models are saved / will be saved
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
