@@ -5,7 +5,7 @@ from torch import optim
 
 
 from torchmetrics import Accuracy
-from .loss import calculate_loss
+from .loss import LossCalculator
 from .config import ALPHA, BETA, GAMMA
 
 class Trainer:
@@ -16,7 +16,7 @@ class Trainer:
         
         self.optimizer = optimizer
         self.log_function = log_function # TODO: add logging for desired metrics
-        
+        self.loss_calculator = LossCalculator()
         
         
         # a list for saving the best models
@@ -73,7 +73,7 @@ class Trainer:
             }
     
     def train_loss_per_step(self, out_batch, style_batch, original_batch):
-        loss_fn = calculate_loss
+        loss_fn = self.loss_calculator.calculate_loss
         return loss_fn(ALPHA, BETA, GAMMA, out_batch, style_batch, original_batch)
         
     @torch.no_grad()
@@ -113,7 +113,7 @@ class Trainer:
         
     
     def validation_loss_per_step(self, out_batch, style_batch, original_batch):
-        loss_fn = calculate_loss
+        loss_fn = self.loss_calculator.calculate_loss
         return loss_fn(ALPHA, BETA, GAMMA, out_batch, style_batch, original_batch)
 
     

@@ -53,7 +53,7 @@ def train_transform():
         [
             #crop x256x256
             transforms.Resize(256, antialias=True),
-            transforms.RandomCrop((256, 256)),
+            transforms.CenterCrop((256, 256)),
             transforms.ToTensor(),
         ]
     )
@@ -63,7 +63,7 @@ def test_transform():
     return transforms.Compose(
         {
             transforms.Resize(256, antialias=True),
-            transforms.RandomCrop((256, 256)),
+            transforms.CenterCrop((256, 256)),
             transforms.ToTensor(),
         }
     )
