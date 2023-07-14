@@ -6,9 +6,9 @@ from datetime import datetime
 # Training hyperparameters
 LEARNING_RATE = 1e-3
 BATCH_SIZE = 4
-EPOCHS = 1
-ALPHA = 1e-4
-BETA = 1
+EPOCHS = 3
+ALPHA = 1
+BETA = 1000000
 GAMMA = 1e-6
 
 # Dataset related

@@ -50,46 +50,46 @@ class JohnsonsImageTransformNet(nn.Module):
         
         # 2. Conv Layer
         conv_2_filters = 64
-        conv_2_kernel_size = 4 # originally 3
+        conv_2_kernel_size = 3 # originally 3
         conv_2_stride = 2
         self.conv2d_2 = nn.Conv2d(conv_1_filters, conv_2_filters, 
                                   kernel_size=conv_2_kernel_size, 
                                   stride=conv_2_stride, 
-                                  padding=conv_2_kernel_size//2 - 1
+                                  padding=(conv_2_kernel_size + 2) // 2 - 1
                                   )
 
         # 3. Conv Layer
         conv_3_filters = 128
-        conv_3_kernel_size = 4 # originally 3
+        conv_3_kernel_size = 3 # originally 3
         conv_3_stride = 2
         self.conv2d_3 = nn.Conv2d(conv_2_filters, conv_3_filters, 
                                   kernel_size=conv_3_kernel_size, 
                                   stride=conv_3_stride, 
-                                  padding=conv_3_kernel_size//2 - 1
+                                  padding=(conv_3_kernel_size + 2) // 2 - 1
                                   )
         self.res_blocks = nn.Sequential(
             *[JohnsonsImageTransformNetResidualBlock(filters=filters_res_block) for _ in range(5)]
         )
         # ------------ RECONSTRUCTION ------------
         conv_4_filters = 64
-        conv_4_kernel_size = 4 # originally 3
+        conv_4_kernel_size = 3 # originally 3
         conv_4_stride = 2 # 1/2
         self.conv2d_4 = nn.ConvTranspose2d(conv_3_filters, conv_4_filters,
                                            kernel_size=conv_4_kernel_size,
                                            stride=conv_4_stride,
-                                           padding=conv_4_kernel_size//2 - 1, # originally NOT -1
-                                           output_padding=0
+                                           padding=conv_4_kernel_size//2, # originally NOT -1
+                                           output_padding=1
                                            )
         
         conv_5_filters = 32
-        conv_5_kernel_size = 4 # originally 3
+        conv_5_kernel_size = 3 # originally 3
         conv_5_stride = 2 # 1/2
         
         self.conv2d_5 = nn.ConvTranspose2d(conv_4_filters, conv_5_filters,
                                            kernel_size=conv_5_kernel_size,
                                            stride=conv_5_stride,
-                                           padding=conv_5_kernel_size//2 - 1, 
-                                           output_padding=0
+                                           padding=conv_5_kernel_size//2, 
+                                           output_padding=1
                                            )
         
         conv_6_filters = 3
@@ -130,9 +130,9 @@ class JohnsonsImageTransformNetResidualBlock(nn.Module):
         y = self.relu(y)
         y = self.conv2d_2(y)
         y = self.batch_norm_2(y)
-        y = y + x 
+        # y = y + x 
         # alternative to residual connection:
-        # y = self.relu(y)
+        y = self.relu(y)
         
         return y
     
