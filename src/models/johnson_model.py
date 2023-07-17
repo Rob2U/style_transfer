@@ -55,6 +55,7 @@ class JohnsonsImageTransformNet(nn.Module):
         # 2. Conv Layer
         conv_2_filters = 64
         conv_2_kernel_size = 3 # originally 3
+        conv_2_kernel_size = 3 # originally 3
         conv_2_stride = 2
         self.conv2d_2 = nn.Conv2d(conv_1_filters, conv_2_filters, 
                                   kernel_size=conv_2_kernel_size, 
@@ -68,6 +69,7 @@ class JohnsonsImageTransformNet(nn.Module):
 
         # 3. Conv Layer
         conv_3_filters = 128
+        conv_3_kernel_size = 3 # originally 3
         conv_3_kernel_size = 3 # originally 3
         conv_3_stride = 2
         self.conv2d_3 = nn.Conv2d(conv_2_filters, conv_3_filters, 

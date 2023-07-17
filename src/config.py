@@ -7,6 +7,7 @@ from datetime import datetime
 LEARNING_RATE = 1e-3
 BATCH_SIZE = 8
 EPOCHS = 1
+
 ALPHA = 1
 BETA = 1000000
 GAMMA = 1e-6
