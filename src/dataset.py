@@ -30,9 +30,10 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         # print(self.style_image.shape)
         
     def __len__(self):
-        #return len(self.images)
-        return 320
-    
+        #return len(self.images)# replace with actual dataset size
+        return len(self.images)//3
+        
+        
     def __getitem__(self, index):
         image_path = os.path.join(self.root, self.images[index])
         image = Image.open(image_path).convert("RGB")
