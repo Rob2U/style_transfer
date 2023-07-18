@@ -113,7 +113,9 @@ if __name__ == "__main__":
     
     image_to_style = Image.open("test_images/test1.jpg")
     # image_to_style = Image.open("test_images/000000436138.jpg")
-    image_transformed = test_transform()(image_to_style)
+    image_transformed = transforms.Resize(256, antialias=True)(image_to_style)
+    image_transformed = transforms.CenterCrop((256, 256))(image_transformed)
+    image_transformed = transforms.ToTensor()(image_transformed)
     img_crop = transforms.ToPILImage()(image_transformed.squeeze(0).cpu())
     img_crop \
         .save("test_images/test1_crop.jpg")

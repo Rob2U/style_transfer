@@ -56,7 +56,7 @@ class Trainer:
                 
                 batch_losses.append(loss.item())
                 loss.backward()
-
+                torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1.0)
                 self.optimizer.step()
                 
                 # set progress bar stats

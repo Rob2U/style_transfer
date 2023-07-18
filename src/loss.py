@@ -74,8 +74,8 @@ class LossCNN(nn.Module):
 class LossCalculator():
     def __init__(self, **kwargs):
         self.mse = torch.nn.MSELoss(reduction='mean').to(ACCELERATOR)
-        self.content_layers = ['conv_3'] # may try conv_3
-        self.style_layers = ['conv_1', 'conv_2', 'conv_3', 'conv_4'] # prev. relu_1, relu_2, relu_3, relu_4
+        self.content_layers = ['relu_3'] # may try conv_3
+        self.style_layers = ['relu_1', 'relu_2', 'relu_3', 'relu_4'] # prev. relu_1, relu_2, relu_3, relu_4
         self.loss_net = LossCNN(self.content_layers, self.style_layers)
         self.tv = TotalVariation().to(ACCELERATOR)
         
