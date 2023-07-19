@@ -1,0 +1,16 @@
+name: style_transfer_test_env
+channels:
+  - defaults
+  - conda-forge
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3.10
+  - torchaudio
+  - pytorch-cuda=11.8
+  - torchvision
+  - pytorch
+  - wandb
+  - pandas
+  - torchmetrics
+  - matplotlib
