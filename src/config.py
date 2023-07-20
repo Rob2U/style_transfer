@@ -5,11 +5,11 @@ from datetime import datetime
 
 # Training hyperparameters
 LEARNING_RATE = 1e-3
-BATCH_SIZE = 4
-EPOCHS = 4
+BATCH_SIZE = 16
+EPOCHS = 1
 ALPHA = 1
-BETA = 1000000
-GAMMA = 1e-6
+BETA = 1
+GAMMA = 0 # 1e-6
 
 # Dataset related
 DATA_DIR = os.path.join(os.getcwd(), "data" ,"train2017", "train2017")
@@ -26,4 +26,4 @@ ACCELERATOR = "cuda" # "gpu" or "cpu
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
 
 # other
-RUN_NAME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "upsampling--instance_norm--style5--2nd"
+RUN_NAME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "vanGogh--ct--in--vgg19--1-1-0--blockreflect"

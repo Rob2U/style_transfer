@@ -29,7 +29,7 @@ class Trainer:
             self.train_epoch(train_loader, epoch)
             self.validate_epoch(val_loader, epoch)
             
-    @torch.enable_grad()
+            
     def train_epoch(self, train_loader, current_epoch):
         #define the loss fn and optimizer
         batch_losses = []
@@ -118,5 +118,5 @@ class Trainer:
 
     
 def configure_optimizer(model, learning_rate):
-    optimizer = optim.AdamW(model.parameters(), lr=learning_rate)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
     return optimizer

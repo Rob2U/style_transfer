@@ -36,6 +36,8 @@ def train_model(model_class, train_dl, val_dl):
     # configure model
     model = model_class()
     model = model.to(ACCELERATOR)
+    for param in model.parameters(): # ensure that all parameters are trainable
+        param.requires_grad = True
         
     # configure the trainer
     optimizer = configure_optimizer(model=model, learning_rate=LEARNING_RATE)
@@ -98,7 +100,7 @@ if __name__ == "__main__":
     val_dl = data.DataLoader(val_ds, batch_size=BATCH_SIZE, shuffle=False)
     test_dl = data.DataLoader(test_ds, batch_size=BATCH_SIZE, shuffle=False)
     
-    # torch.autograd.set_detect_anomaly(True)
+    torch.autograd.set_detect_anomaly(True)
     # train the model
     model = train_model(JohnsonsImageTransformNet, train_dl, val_dl)
     
