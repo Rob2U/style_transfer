@@ -8,8 +8,8 @@ LEARNING_RATE = 1e-3
 BATCH_SIZE = 16
 EPOCHS = 1
 ALPHA = 1
-BETA = 1
-GAMMA = 0 # 1e-6
+BETA = 0
+GAMMA = 3e-4
 
 # Dataset related
 DATA_DIR = os.path.join(os.getcwd(), "data" ,"train2017", "train2017")
@@ -26,4 +26,4 @@ ACCELERATOR = "cuda" # "gpu" or "cpu
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
 
 # other
-RUN_NAME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "vanGogh--ct--in--vgg19--1-1-0--blockreflect"
+RUN_NAME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "vanGogh--ct--in--vgg19--1-50-1e-4--blockreflect"

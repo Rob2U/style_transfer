@@ -31,7 +31,7 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         
     def __len__(self):
         #return len(self.images)# replace with actual dataset size
-        return len(self.images)
+        return len(self.images)//4
         
 
     def __getitem__(self, index):
