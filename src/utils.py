@@ -1,3 +1,4 @@
+# source: https://stackoverflow.com/questions/2601194/displaying-a-webcam-feed-using-opencv-and-python/11449901#11449901
 import cv2
 import torch
 import PIL.Image as Image
