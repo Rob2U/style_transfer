@@ -2,7 +2,7 @@
 
 ## Setup
 ### File Structure
-```
+
 .
 ├── data 
 │   ╰── train2017
@@ -27,7 +27,7 @@
 ├── pytorch-gatys-baseline.ipynb <- implementation of Gatys to test loss
 ├── README.md
 ╽
-```
+
 ### Setup
 1. Download the [COCO Dataset](http://cocodataset.org/#download) and extract it into the `data` folder. (for `curl` use `curl http://images.cocodataset.org/zips/train2017.zip --output data/train2017.zip` and then `unzip data/train2017.zip -d train2017`, then the directory structure should be correct (if not just adjust the `DATA_DIR` in `src/config.py`)))
 2. 
