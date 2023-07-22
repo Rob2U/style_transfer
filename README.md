@@ -2,55 +2,32 @@
 
 ## Setup
 ### File Structure
-
+```
 .
 ├── data 
-
 │   ╰── train2017
-
 │       ╰── train2017
-
 │           ├── 000000000009.jpg
-
 │           ╽   ...
-
 ├── src 
-
 │   ├── models 
-
 │   │   ╰── johnson_model.py    <- model described in paper
-
 │   ├── dataset.py              <- dataloading
-
 │   ├── train.py                <- actual training
-
 │   ├── trainer.py              <- specific training loop
-
 │   ├── loss.py                 <- perceptual loss function
-
 │   ├── config.py
-
 │   ╰── utils.py                <- (TODO: the video stuff)
-
 ├── style_images                <- put all style images here
-
 │   ├── style1.jpg
-
 │   ╽   ...
-
 ├── test_images                 <- put all test images here
-
 ├── checkpoints                 <- create this directory (models will be saved here)
-
 ├── environment.yml             <- for conda (if desired)
-
 ├── pytorch-gatys-baseline.ipynb <- implementation of Gatys to test loss
-
 ├── README.md
-
 ╽
-
-
+```
 ### Setup
 1. Download the [COCO Dataset](http://cocodataset.org/#download) and extract it into the `data` folder. (for `curl` use `curl http://images.cocodataset.org/zips/train2017.zip --output data/train2017.zip` and then `unzip data/train2017.zip -d train2017`, then the directory structure should be correct (if not just adjust the `DATA_DIR` in `src/config.py`)))
 2. 
