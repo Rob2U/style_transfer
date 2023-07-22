@@ -32,7 +32,7 @@ class JohnsonsImageTransformNet(nn.Module):
         self.conv2d_1 = nn.Conv2d(3, conv_1_filters, 
                                   kernel_size=conv_1_kernel_size, 
                                   stride=conv_1_stride, 
-                                  padding_mode='zeros', #'zeros'
+                                  padding_mode='reflect', #'zeros'
                                   padding=4 #conv_1_kernel_size//2 # originally NOT -1
                                   )
         # self.batch_norm_1 = nn.BatchNorm2d(conv_1_filters)
@@ -47,7 +47,7 @@ class JohnsonsImageTransformNet(nn.Module):
         self.conv2d_2 = nn.Conv2d(conv_1_filters, conv_2_filters, 
                                   kernel_size=conv_2_kernel_size, 
                                   stride=conv_2_stride, 
-                                  padding_mode='zeros', #'zeros'
+                                  padding_mode='reflect', #'zeros'
                                   padding=1 #conv_2_kernel_size//2 # originally NOT -1
                                   )
         # self.batch_norm_2 = nn.BatchNorm2d(conv_2_filters)
@@ -62,7 +62,7 @@ class JohnsonsImageTransformNet(nn.Module):
         self.conv2d_3 = nn.Conv2d(conv_2_filters, conv_3_filters, 
                                   kernel_size=conv_3_kernel_size, 
                                   stride=conv_3_stride, 
-                                  padding_mode='zeros', #'zeros'
+                                  padding_mode='reflect', #'zeros'
                                   padding=1 #conv_3_kernel_size//2
                                   )
         # self.batch_norm_3 = nn.BatchNorm2d(conv_3_filters)
@@ -76,18 +76,18 @@ class JohnsonsImageTransformNet(nn.Module):
         conv_4_filters = 64
         conv_4_kernel_size = 3 
         conv_4_stride = 2
-        # self.up1 = UpsampleConvLayer(in_channels=conv_3_filters, 
-        #                             out_channels=conv_4_filters,
-        #                             kernel_size=conv_4_kernel_size,
-        #                             stride=conv_4_stride,
-        # )
-        self.conv2d_4 = nn.ConvTranspose2d(conv_3_filters, conv_4_filters,
-                                           kernel_size=conv_4_kernel_size,
-                                           stride=conv_4_stride,
-                                           padding_mode='zeros', #'zeros'
-                                           padding=1, #conv_4_kernel_size//2, # originally NOT -1
-                                           output_padding=1 #1
-                                           )
+        self.up1 = UpsampleConvLayer(in_channels=conv_3_filters, 
+                                    out_channels=conv_4_filters,
+                                    kernel_size=conv_4_kernel_size,
+                                    stride=conv_4_stride,
+        )
+        # self.conv2d_4 = nn.ConvTranspose2d(conv_3_filters, conv_4_filters,
+        #                                    kernel_size=conv_4_kernel_size,
+        #                                    stride=conv_4_stride,
+        #                                    padding_mode='zeros', #'zeros'
+        #                                    padding=1, #conv_4_kernel_size//2, # originally NOT -1
+        #                                    output_padding=1 #1
+        #                                    )
         # self.batch_norm_4 = nn.BatchNorm2d(conv_4_filters)
         self.in4 = torch.nn.InstanceNorm2d(conv_4_filters, affine=True)
         self.relu_4 = nn.ReLU()
@@ -96,19 +96,19 @@ class JohnsonsImageTransformNet(nn.Module):
         conv_5_filters = 32
         conv_5_kernel_size = 3
         conv_5_stride = 2
-        # self.up2 = UpsampleConvLayer(conv_4_filters, 
-        #                             conv_5_filters, 
-        #                             kernel_size=conv_5_kernel_size, 
-        #                             stride=conv_5_stride
-        # )
+        self.up2 = UpsampleConvLayer(conv_4_filters, 
+                                    conv_5_filters, 
+                                    kernel_size=conv_5_kernel_size, 
+                                    stride=conv_5_stride
+        )
         
-        self.conv2d_5 = nn.ConvTranspose2d(conv_4_filters, conv_5_filters,
-                                           kernel_size=conv_5_kernel_size,
-                                           stride=conv_5_stride,
-                                           padding_mode='zeros', #'zeros'
-                                           padding=1, #conv_5_kernel_size//2, 
-                                           output_padding=1 #1
-                                           )
+        # self.conv2d_5 = nn.ConvTranspose2d(conv_4_filters, conv_5_filters,
+        #                                    kernel_size=conv_5_kernel_size,
+        #                                    stride=conv_5_stride,
+        #                                    padding_mode='zeros', #'zeros'
+        #                                    padding=1, #conv_5_kernel_size//2, 
+        #                                    output_padding=1 #1
+        #                                    )
         # self.batch_norm_5 = nn.BatchNorm2d(conv_5_filters)
         self.in5 = torch.nn.InstanceNorm2d(conv_5_filters, affine=True)
         self.relu_5 = nn.ReLU()
@@ -120,7 +120,7 @@ class JohnsonsImageTransformNet(nn.Module):
         self.conv2d_6 = nn.Conv2d(conv_5_filters, conv_6_filters,
                                            kernel_size=conv_6_kernel_size,
                                            stride=conv_6_stride,
-                                           padding_mode='zeros', #'zeros'
+                                           padding_mode='reflect', #'zeros'
                                            padding=4, #conv_6_kernel_size//2, # originally NOT -1
                                            )
         # self.in5 = torch.nn.InstanceNorm2d(conv_5_filters, affine=True)
@@ -135,10 +135,10 @@ class JohnsonsImageTransformNet(nn.Module):
         conv3 = self.relu_3(self.in3(self.conv2d_3(conv2)))
         res_x = self.res_blocks(conv3)
         
-        conv4 = self.relu_4(self.in4(self.conv2d_4(res_x)))
-        conv5 = self.relu_5(self.in5(self.conv2d_5(conv4)))
-        # conv4 = self.relu_4(self.in4(self.up1(res_x)))
-        # conv5 = self.relu_5(self.in5(self.up2(conv4)))
+        # conv4 = self.relu_4(self.in4(self.conv2d_4(res_x)))
+        # conv5 = self.relu_5(self.in5(self.conv2d_5(conv4)))
+        conv4 = self.relu_4(self.in4(self.up1(res_x)))
+        conv5 = self.relu_5(self.in5(self.up2(conv4)))
         conv6 = self.conv2d_6(conv5) # self.relu_6(self.batch_norm_6(self.conv2d_6(conv5)))
         return conv6
     
@@ -174,7 +174,7 @@ class UpsampleConvLayer(torch.nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride):
         super().__init__()
         self.upsampling_factor = stride
-        self.conv2d = nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=kernel_size//2, padding_mode='zeros')
+        self.conv2d = nn.Conv2d(in_channels, out_channels, kernel_size, stride=1, padding=kernel_size//2, padding_mode='reflect')
 
     def forward(self, x):
         if self.upsampling_factor > 1:
