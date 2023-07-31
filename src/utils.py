@@ -8,11 +8,14 @@ from src.models import JohnsonsImageTransformNet
 ACCELERATOR = torch.device("cpu")
 
 # load model
-pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-22_11-26-02vanGogh--up--in--vgg16--1-10-1e-5--allreflect--long.pth"
+# pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-22_11-26-02vanGogh--up--in--vgg16--1-10-1e-5--allreflect--long.pth"
+# pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-23_10-21-48vanGogh--up--in--vgg16--1-5-1e-5--allreflect--long.pth"
+pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-30_23-51-45Monet--up--in--vgg16--1-10-1e-5--allreflect--long--end.pth"
 print("Loading pretrained model from %s..." % pretrained_filename)
 # Automatically loads the model with the saved hyperparameters
 model = JohnsonsImageTransformNet()
 model.load_state_dict(torch.load(pretrained_filename, map_location=torch.device('cpu')))
+
 
 cv2.namedWindow("preview")
 vc = cv2.VideoCapture(0)
