@@ -5,16 +5,24 @@ import PIL.Image as Image
 import torchvision.transforms as transforms
 from src.models import JohnsonsImageTransformNet
 
-ACCELERATOR = torch.device("cpu")
+ACCELERATOR = torch.device("mps")
 
 # load model
 # pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-22_11-26-02vanGogh--up--in--vgg16--1-10-1e-5--allreflect--long.pth"
-# pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-23_10-21-48vanGogh--up--in--vgg16--1-5-1e-5--allreflect--long.pth"
-pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-30_23-51-45Monet--up--in--vgg16--1-10-1e-5--allreflect--long--end.pth"
+#pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-23_10-21-48vanGogh--up--in--vgg16--1-5-1e-5--allreflect--long.pth"
+# pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-30_23-51-45Monet--up--in--vgg16--1-10-1e-5--allreflect--long--end.pth"
+pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-08-03_21-08-55vanGogh--up--in--vgg16--1-250-1e-5--allreflect--end--ownloss.pth"
+
 print("Loading pretrained model from %s..." % pretrained_filename)
 # Automatically loads the model with the saved hyperparameters
 model = JohnsonsImageTransformNet()
 model.load_state_dict(torch.load(pretrained_filename, map_location=torch.device('cpu')))
+model = model.to(ACCELERATOR)
+
+# measure the framerate
+import time
+
+start_time = time.time()
 
 
 cv2.namedWindow("preview")
@@ -24,8 +32,10 @@ if vc.isOpened(): # try to get the first frame
     rval, frame = vc.read()
 else:
     rval = False
+counter = 0
 
 while rval:
+    counter += 1
     cv2.imshow("preview", frame)
     rval, frame = vc.read()
     frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
@@ -46,6 +56,11 @@ while rval:
     key = cv2.waitKey(20)
     if key == 27: # exit on ESC
         break
+    
+    if time.time() - start_time > 1:
+        print("FPS:", counter)
+        counter = 0
+        start_time = time.time()
 
 cv2.destroyWindow("preview")
 vc.release()
