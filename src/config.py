@@ -8,11 +8,12 @@ LEARNING_RATE = 1e-3
 BATCH_SIZE = 16
 EPOCHS = 1
 ALPHA = 1
-BETA = 10
+BETA = 25
 GAMMA = 1e-5
 
 # Dataset related
-DATA_DIR = os.path.join(os.getcwd(), "data" ,"train2017", "train2017")
+# DATA_DIR = os.path.join(os.getcwd(), "data" ,"train2017", "train2017")
+DATA_DIR = os.path.join(os.getcwd(), "data" ,"img_align_celeba", "img_align_celeba")
 STYLE_IMAGE_PATH = os.path.join(os.getcwd(), "style_images", "style5.jpg")
 TRAIN_RATIO = 1.0
 VAL_RATIO = 0
@@ -26,4 +27,4 @@ ACCELERATOR = "cuda" # "gpu" or "cpu
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")
 
 # other
-RUN_NAME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "vanGogh--up--in--vgg16--1-10-1e-5--allreflect--long"
+RUN_NAME = datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + "vanGogh--up--in--vgg16--1-25-1e-5--allreflect--faces"

@@ -36,7 +36,7 @@ class JohnsonsImageTransformNet(nn.Module):
                                   padding=4 #conv_1_kernel_size//2 # originally NOT -1
                                   )
         # self.batch_norm_1 = nn.BatchNorm2d(conv_1_filters)
-        self.in1 = nn.InstanceNorm2d(conv_1_filters)
+        self.in1 = nn.InstanceNorm2d(conv_1_filters, affine=True)
         self.relu_1 = nn.ReLU()
         
         # 2. Conv Layer
@@ -51,7 +51,7 @@ class JohnsonsImageTransformNet(nn.Module):
                                   padding=1 #conv_2_kernel_size//2 # originally NOT -1
                                   )
         # self.batch_norm_2 = nn.BatchNorm2d(conv_2_filters)
-        self.in2 = nn.InstanceNorm2d(conv_2_filters)
+        self.in2 = nn.InstanceNorm2d(conv_2_filters, affine=True)
         self.relu_2 = nn.ReLU()
 
         # 3. Conv Layer
@@ -66,7 +66,7 @@ class JohnsonsImageTransformNet(nn.Module):
                                   padding=1 #conv_3_kernel_size//2
                                   )
         # self.batch_norm_3 = nn.BatchNorm2d(conv_3_filters)
-        self.in3 = nn.InstanceNorm2d(conv_3_filters)
+        self.in3 = nn.InstanceNorm2d(conv_3_filters, affine=True)
         self.relu_3 = nn.ReLU()
         
         self.res_blocks = nn.Sequential(
@@ -123,8 +123,8 @@ class JohnsonsImageTransformNet(nn.Module):
                                            padding_mode='reflect', #'zeros'
                                            padding=4, #conv_6_kernel_size//2, # originally NOT -1
                                            )
-        # self.in5 = torch.nn.InstanceNorm2d(conv_5_filters, affine=True)
-        # self.relu_6 = nn.ReLU()
+        self.in6 = torch.nn.InstanceNorm2d(conv_6_filters, affine=True)
+        self.relu_6 = nn.ReLU()
         # self.batch_norm_6 = nn.BatchNorm2d(conv_6_filters)        
 
     def forward(self, x):
@@ -135,11 +135,12 @@ class JohnsonsImageTransformNet(nn.Module):
         conv3 = self.relu_3(self.in3(self.conv2d_3(conv2)))
         res_x = self.res_blocks(conv3)
         
-        # conv4 = self.relu_4(self.in4(self.conv2d_4(res_x)))
-        # conv5 = self.relu_5(self.in5(self.conv2d_5(conv4)))
         conv4 = self.relu_4(self.in4(self.up1(res_x)))
         conv5 = self.relu_5(self.in5(self.up2(conv4)))
-        conv6 = self.conv2d_6(conv5) # self.relu_6(self.batch_norm_6(self.conv2d_6(conv5)))
+        # conv4 = self.relu_4(self.batch_norm_4(self.up1(res_x)))
+        # conv5 = self.relu_5(self.batch_norm_5(self.up2(conv4)))
+        # conv6 = self.conv2d_6(conv5) 
+        conv6 = self.relu_6(self.in6(self.conv2d_6(conv5)))
         return conv6
     
 class JohnsonsImageTransformNetResidualBlock(nn.Module):
@@ -148,16 +149,20 @@ class JohnsonsImageTransformNetResidualBlock(nn.Module):
         self.kwargs = kwargs
         self.conv2d_1 = nn.Conv2d(filters, filters, kernel_size=3, stride=1, padding_mode='reflect', padding=1)
         self.in1 = nn.InstanceNorm2d(filters, affine=True)
+        # self.batch_norm_1 = nn.BatchNorm2d(filters)
         self.relu = nn.ReLU()
         self.conv2d_2 = nn.Conv2d(filters, filters, kernel_size=3, stride=1, padding_mode='reflect', padding=1)
         self.in2 = nn.InstanceNorm2d(filters, affine=True)
+        # self.batch_norm_2 = nn.BatchNorm2d(filters)
         
     def forward(self, x):
         x = x.to(ACCELERATOR)
         y = self.conv2d_1(x)
+        # y = self.in1(y)
         y = self.in1(y)
         y = self.relu(y)
         y = self.conv2d_2(y)
+        # y = self.in2(y)
         y = self.in2(y)
         y = self.relu(y)
         y = y + x 

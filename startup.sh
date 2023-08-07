@@ -1,5 +1,5 @@
 #!/bin/bash -eux
-#SBATCH --job-name=st_ln_ct_job1
+#SBATCH --job-name=st_ln_ct_job2
 #SBATCH --output=./logs/%j.out
 #SBATCH --partition=gpu # -p
 #SBATCH --cpus-per-task=8 # -c
@@ -11,5 +11,5 @@
 
 # Run python script
 eval "$(conda shell.bash hook)"
-conda activate mml_env
+conda activate adni
 python -m src.train

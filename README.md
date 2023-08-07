@@ -234,3 +234,5 @@ input x is a low-resolution input, the content target y_c is the ground-truth hi
 [Reduce Checkerboard Effect in Output Images by Upsampling](https://distill.pub/2016/deconv-checkerboard/)
 
 [Instance Normalization](https://arxiv.org/pdf/1607.08022.pdf)
+
+Antibes Lakes from Salis Gardens by Claude Monet 
