@@ -25,16 +25,19 @@
 ├── checkpoints                 <- create this directory (models will be saved here)
 ├── environment.yml             <- for conda (if desired)
 ├── pytorch-gatys-baseline.ipynb <- implementation of Gatys to test loss
+├── README.md
 ╽
 ```
 ### Setup
 1. Download the [COCO Dataset](http://cocodataset.org/#download) and extract it into the `data` folder. (for `curl` use `curl http://images.cocodataset.org/zips/train2017.zip --output data/train2017.zip` and then `unzip data/train2017.zip -d train2017`, then the directory structure should be correct (if not just adjust the `DATA_DIR` in `src/config.py`)))
 2. 
 - If you want to use the conda environment, run `conda env create -f environment.yml` and then `conda activate style-transfer` in order to activate it.
-- NOTE: Depending on your OS, you may need to change the pytorch related packages and channels (see [here](https://pytorch.org/get-started/locally/) (channels are added in the command with `-c`)))
+- NOTE: Depending on your OS, you may need to change the pytorch related packages and channels (see [here](https://pytorch.org/get-started/locally/) (channels are added in the command with `-c`))
+- as it was not possible to install openCV with conda, it is installed with pip (see [here](https://pypi.org/project/opencv-python/))
 3. Specify the style and test images in `src/config.py`. (Check all other parameters as well (one may want to change the __len__ of the dataset to adjust the number of training images))
 4. Run `python -m src.train` to start training.
 5. The saved model can be found in `checkpoints` and the generated output images in `test_images`.
+6. You can use `utils.py` to apply the model to your webcam stream (see `utils.py` for more information).
 
 ## Exercise
 
