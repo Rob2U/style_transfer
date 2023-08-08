@@ -59,7 +59,7 @@ class ImageTransformNet(nn.Module):
         self.relu_3 = nn.ReLU()
         
         self.res_blocks = nn.Sequential(
-            *[JohnsonsImageTransformNetResidualBlock(filters=filters_res_block) for _ in range(5)]
+            *[ResBlock(filters=filters_res_block) for _ in range(5)]
         )
         # ------------ RECONSTRUCTION ------------
         conv_4_filters = 64
@@ -74,7 +74,7 @@ class ImageTransformNet(nn.Module):
         #                                    kernel_size=conv_4_kernel_size,
         #                                    stride=conv_4_stride,
         #                                    padding_mode='zeros', #'zeros'
-        #                                    padding=1, #conv_4_kernel_size//2, # originally NOT -1
+        #                                    padding=1, #conv_4_kernel_size//2,
         #                                    output_padding=1 #1
         #                                    )
         # self.batch_norm_4 = nn.BatchNorm2d(conv_4_filters)
@@ -110,7 +110,7 @@ class ImageTransformNet(nn.Module):
                                            kernel_size=conv_6_kernel_size,
                                            stride=conv_6_stride,
                                            padding_mode='reflect', #'zeros'
-                                           padding=4, #conv_6_kernel_size//2, # originally NOT -1
+                                           padding=4, #conv_6_kernel_size//2, 
                                            )
         self.in6 = torch.nn.InstanceNorm2d(conv_6_filters, affine=True)
         self.relu_6 = nn.ReLU()
@@ -132,31 +132,28 @@ class ImageTransformNet(nn.Module):
         conv6 = self.relu_6(self.in6(self.conv2d_6(conv5)))
         return conv6
     
-class JohnsonsImageTransformNetResidualBlock(nn.Module):
+class ResBlock(nn.Module):
+    """
+    A Wrapper for a Residual Block specified in the paper
+    """
     def __init__(self, filters=128, **kwargs):
         super().__init__()
         self.kwargs = kwargs
         self.conv2d_1 = nn.Conv2d(filters, filters, kernel_size=3, stride=1, padding_mode='reflect', padding=1)
         self.in1 = nn.InstanceNorm2d(filters, affine=True)
-        # self.batch_norm_1 = nn.BatchNorm2d(filters)
         self.relu = nn.ReLU()
         self.conv2d_2 = nn.Conv2d(filters, filters, kernel_size=3, stride=1, padding_mode='reflect', padding=1)
         self.in2 = nn.InstanceNorm2d(filters, affine=True)
-        # self.batch_norm_2 = nn.BatchNorm2d(filters)
         
     def forward(self, x):
         x = x.to(ACCELERATOR)
         y = self.conv2d_1(x)
-        # y = self.in1(y)
         y = self.in1(y)
         y = self.relu(y)
         y = self.conv2d_2(y)
-        # y = self.in2(y)
         y = self.in2(y)
         y = self.relu(y)
         y = y + x 
-        # alternative to residual connection:
-        #y = self.relu(y)
         
         return y
     
