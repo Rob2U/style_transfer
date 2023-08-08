@@ -4,7 +4,7 @@ import torch
 
 import torch.utils.data as data
 from torchvision import transforms
-
+import wandb
 import os
 
 from .trainer import Trainer, configure_optimizer
@@ -23,8 +23,6 @@ from .config import (
     RUN_NAME,
     STYLE_IMAGE_PATH,
 )
-
-import wandb
 
 def train_model(model_class, train_dl, val_dl):
     # configure model
