@@ -1,19 +1,24 @@
+# Desc: Defines the dataset for the style transfer model
+
 import torch
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from torchvision import transforms
 
-import pandas as pd
 import os
 from PIL import Image
 import matplotlib.pyplot as plt
 import numpy as np
 
-from src.config import ACCELERATOR   
+from .config import ACCELERATOR   
         
     
-class COCOImageDatset(Dataset): # might consider loading multiple images of the same style for better generalization
-    def __init__(self, root, style_image_path, transform):
+class ImageDatset(Dataset): # might consider loading multiple images of the same style for better generalization
+    """
+    A simple dataset class for the style transfer model, that tries to load all files in the given root directory as images.
+    """
+    
+    def __init__(self, root, style_image_path):
         self.root = root
         self.transform = train_transform()
         
@@ -26,11 +31,8 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         
         # load style image
         self.style_image = Image.open(style_image_path).convert("RGB")
-        # self.style_image = self.transform(self.style_image)
-        # print(self.style_image.shape)
         
     def __len__(self):
-        #return len(self.images)# replace with actual dataset size
         return len(self.images)
         
 
@@ -48,18 +50,16 @@ class COCOImageDatset(Dataset): # might consider loading multiple images of the 
         return image, style_image
         
 
-
 def train_transform():
     return transforms.Compose(
         [
-            #crop x256x256
             transforms.Resize(256, antialias=True),
             transforms.CenterCrop((256, 256)),
             transforms.ToTensor(),
         ]
     )
 
-
+# in the end we did not use this transform as there was no point in switching transforms between train and test, because the dataset was already big enough
 def test_transform():
     return transforms.Compose(
         {
@@ -70,7 +70,7 @@ def test_transform():
     )
     
 
-
+# same as above, we did not need to use this function in the end
 def perform_train_val_test_split(dataset, data_dir, style_image_path, train_size, val_size, test_size):
         if train_size + val_size + test_size != 1:
             raise ValueError("train_size + val_size + test_size must equal 1")
@@ -109,7 +109,7 @@ def perform_train_val_test_split(dataset, data_dir, style_image_path, train_size
 
 if __name__ == "__main__":
     # test dataset
-    dataset = COCOImageDatset(
+    dataset = ImageDatset(
         root="/Users/robert/Desktop/style_transfer/style_transfer/data/train2017",
         style_image_path="/Users/robert/Desktop/style_transfer/style_transfer/style_images/style1.jpeg",
         transform=train_transform(),

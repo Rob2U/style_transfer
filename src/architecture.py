@@ -1,25 +1,14 @@
+# Desc: Defines the architecture of the style transfer model similiar to the one described in the paper "Perceptual Losses for Real-Time Style Transfer and Super-Resolution" by Johnson et al.
+
 import torch.nn as nn
 import torch.optim as optim
 import torch.nn.functional as F
 import torch
 
-from torchvision.models import vgg16, VGG16_Weights
-
-from src.config import LEARNING_RATE, ACCELERATOR
-
-import src.models.summary as summary
-
-
-# class TorchModel(nn.Module):
-#     def __init__(self, **kwargs):
-#         super().__init__()
-#         self.kwargs = kwargs
-
-#     def forward(self, x):
-#         pass
+from .config import ACCELERATOR
     
     
-class JohnsonsImageTransformNet(nn.Module):
+class ImageTransformNet(nn.Module):
     def __init__(self, filters_res_block=128, **kwargs):
         super().__init__()
         self.kwargs = kwargs
@@ -173,7 +162,7 @@ class JohnsonsImageTransformNetResidualBlock(nn.Module):
     
 class UpsampleConvLayer(torch.nn.Module):
     """
-        http://distill.pub/2016/deconv-checkerboard/
+    A wrapper around interpolate and convolution to offer an abstraction for
     """
 
     def __init__(self, in_channels, out_channels, kernel_size, stride):
@@ -188,13 +177,7 @@ class UpsampleConvLayer(torch.nn.Module):
 
     
 if __name__ == '__main__':
-    model = JohnsonsImageTransformNet().to(ACCELERATOR)
+    model = ImageTransformNet().to(ACCELERATOR)
     sample = torch.randn(1, 3, 256, 256).to(ACCELERATOR)
     print(model(sample).shape)
     print(model)
-    summary.summary(
-        model=model,
-        input_size=(3, 256, 256),
-        batch_size=1,
-        device=ACCELERATOR,
-    )

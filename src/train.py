@@ -1,21 +1,15 @@
+# Desc: Training script for the project
+
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 
 import torch.utils.data as data
-import torchvision
 from torchvision import transforms
-import PIL.Image as Image
-
-#from torchvision.datasets import MNIST # test template
 
 import os
-import datetime
 
 from .trainer import Trainer, configure_optimizer
-from .dataset import perform_train_val_test_split, COCOImageDatset, test_transform
-from .models import JohnsonsImageTransformNet
+from .dataset import perform_train_val_test_split, ImageDatset
+from .architecture import ImageTransformNet
 from .config import (
     LEARNING_RATE,
     DATA_DIR,
@@ -79,15 +73,11 @@ if __name__ == "__main__":
     # Initialize the logger
     init_logger()
 
-    # Ensure that all operations are deterministic on GPU (if used) for reproducibility
-    # torch.backends.cudnn.deterministic = True
-    # torch.backends.cudnn.benchmark = False
-
     print("Device:", ACCELERATOR)
     
     # load dataset and create dataloaders
     train_ds, val_ds, test_ds = perform_train_val_test_split(
-        COCOImageDatset,
+        ImageDatset,
         DATA_DIR,
         STYLE_IMAGE_PATH,
         TRAIN_RATIO,
@@ -102,13 +92,13 @@ if __name__ == "__main__":
     
     torch.autograd.set_detect_anomaly(True)
     # train the model
-    model = train_model(JohnsonsImageTransformNet, train_dl, val_dl)
+    model = train_model(ImageTransformNet, train_dl, val_dl)
     
     model.eval()
     
     # model = run_pretrained_model(
     #     "checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-14_22-21-25.pth",
-    #     JohnsonsImageTransformNet
+    #     ImageTransformNet
     # )
     # model = model.to(ACCELERATOR)
     
@@ -116,10 +106,7 @@ if __name__ == "__main__":
     # image_to_style = Image.open("test_images/test1.jpg")
     # image_to_style = train_ds[0][0]
     image_transformed = train_ds[0][0]
-    # image_to_style = Image.open("test_images/000000436138.jpg")
-    # image_transformed = transforms.Resize(256, antialias=True)(image_to_style)
-    # image_transformed = transforms.CenterCrop((256, 256))(image_transformed)
-    # image_transformed = transforms.ToTensor()(image_transformed)
+    
     img_crop = transforms.ToPILImage()(image_transformed.squeeze(0).cpu())
     img_crop \
         .save("test_images/test1_crop.jpg")
@@ -130,5 +117,3 @@ if __name__ == "__main__":
     # save the result
     result_image \
         .save("test_images/test1_result_" + RUN_NAME + ".jpg")
-    
-    # test the model TODO: implement test function

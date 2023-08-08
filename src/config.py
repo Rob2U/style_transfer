@@ -1,7 +1,9 @@
+# Desc: Configuration file for the project
+
 import os
 from datetime import datetime
 
-# Model related
+
 
 # Training hyperparameters
 LEARNING_RATE = 1e-3

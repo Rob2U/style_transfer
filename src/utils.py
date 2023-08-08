@@ -1,9 +1,12 @@
+# Desc: Loads a Model from the checkpoint directory and applies it to a webcam stream
 # source: https://stackoverflow.com/questions/2601194/displaying-a-webcam-feed-using-opencv-and-python/11449901#11449901
+
+
 import cv2
 import torch
 import PIL.Image as Image
 import torchvision.transforms as transforms
-from src.models import JohnsonsImageTransformNet
+from .architecture import ImageTransformNet
 
 ACCELERATOR = torch.device("mps")
 
@@ -15,7 +18,7 @@ pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsIm
 
 print("Loading pretrained model from %s..." % pretrained_filename)
 # Automatically loads the model with the saved hyperparameters
-model = JohnsonsImageTransformNet()
+model = ImageTransformNet()
 model.load_state_dict(torch.load(pretrained_filename, map_location=torch.device('cpu')))
 model = model.to(ACCELERATOR)
 

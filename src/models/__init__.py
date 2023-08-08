@@ -1,1 +1,0 @@
-from .johnson_model import *

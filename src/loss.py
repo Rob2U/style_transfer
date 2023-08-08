@@ -1,40 +1,42 @@
+# Desc: Defines the loss function for the style transfer model
+
 import torch
 import torchvision.models 
 import torch.nn as nn
 from torchmetrics import TotalVariation
 
-from src.config import ACCELERATOR
-from src.models.summary import summary
+from .config import ACCELERATOR
 
-cnn_normalization_mean = torch.tensor([0.485, 0.456, 0.406])
-cnn_normalization_std = torch.tensor([0.229, 0.224, 0.225])
+vgg_mean = torch.tensor([0.485, 0.456, 0.406])
+vgg_std = torch.tensor([0.229, 0.224, 0.225])
+
 
 class Normalization(nn.Module):
+    """
+    Normalizes the input image using the mean and std of the VGG16 model
+    """
+    
     def __init__(self, mean, std):
-        super(Normalization, self).__init__()
-        # .view the mean and std to make them [C x 1 x 1] so that they can
-        # directly work with image Tensor of shape [B x C x H x W].
-        # B is batch size. C is number of channels. H is height and W is width.
-        self.mean = mean.clone().detach().view(-1, 1, 1).to(ACCELERATOR)
-        self.std = std.clone().detach().view(-1, 1, 1).to(ACCELERATOR)
+        super().__init__()
+        self.mean = torch.reshape(mean, (3, 1, 1)).to(ACCELERATOR)
+        self.std = torch.reshape(std, (3, 1, 1)).to(ACCELERATOR)
 
     def forward(self, img):
-        # normalize ``img``
         return (img - self.mean) / self.std
 
-
 class LossCNN(nn.Module):
-    
+    """
+    Extracts the content and style activations from the VGG16 model
+    """
     def __init__(self, content_layers, style_layers, **kwargs):
         super().__init__()
         self.kwargs = kwargs
         self.content_layers = content_layers
         self.style_layers = style_layers
-        self.vgg16 = torchvision.models.vgg16(pretrained=True, progress=True).features.to(ACCELERATOR)
+        self.vgg16 = torchvision.models.vgg16(weights=torchvision.models.VGG16_Weights.DEFAULT, progress=True).features.to(ACCELERATOR).eval()
         for param in self.vgg16.parameters(): # freeze the vgg16 model
             param.requires_grad = False
-        self.normalization = Normalization(cnn_normalization_mean, cnn_normalization_std).to(ACCELERATOR)
-        # may be worth to check if trimming the vgg16 model to only the layers we need is worth it
+        self.normalization = Normalization(vgg_mean, vgg_std).to(ACCELERATOR)
     
     def forward(self, x):
         content_activations = []
@@ -45,40 +47,30 @@ class LossCNN(nn.Module):
         j = 0
         for layer in self.vgg16.children():
             
+            name = ''
             if isinstance(layer, nn.Conv2d):
                 j += 1
-                name = 'conv_{}'.format(j)
             elif isinstance(layer, nn.ReLU):
-                name = 'relu_{}'.format(j)
+                name = 'relu_{}'.format(j) # only care about relu layers
                 layer = nn.ReLU(inplace=False)
-            elif isinstance(layer, nn.MaxPool2d):
-                name = 'pool_{}'.format(j)
-            elif isinstance(layer, nn.BatchNorm2d):
-                name = 'bn_{}'.format(j)
-            else:
-                raise RuntimeError('Unrecognized layer: {}'.format(layer.__class__.__name__))
             
-            
-            x = layer(x)
+            x = layer(x) # forward pass
             
             if name in self.content_layers:
-                # print(name)
                 content_activations.append(x)
 
             if name in self.style_layers:
-                # print(name)
                 style_activations.append(x)
-                
-                
-                
-        # print("style act shape: ", len(style_activations))
+        
                 
         return content_activations, style_activations
     
 
 class LossCalculator():
+    """
+    Executes the loss calculation for the style transfer model using the VGG16 model (see report for math details)
+    """
     def __init__(self, **kwargs):
-        self.mse = torch.nn.MSELoss(reduction='mean').to(ACCELERATOR)
         self.content_layers = ['relu_7'] # use conv4_2
         self.style_layers = ['relu_2', 'relu_4', 'relu_7', 'relu_11'] # conv1_1, conv2_1, conv3_1, conv4_1, conv5_1
         self.loss_net = LossCNN(self.content_layers, self.style_layers)
@@ -120,8 +112,7 @@ class LossCalculator():
         original_image = original_image.to(ACCELERATOR)
         generated_content_activations, generated_style_activations = self.loss_net(generated_image)
         
-        style_loss_weights = [1.0, 1.0, 1.0, 1.0, 1.0]  # [1/5, 1/5, 1/5, 1/5, 1/5]
-        # style_loss_weights = [0.7, 0.3, 0.03, 0.03, 0.03]
+        style_loss_weights = [1.0, 1.0, 1.0, 1.0, 1.0]
         # style_loss_weights = [0.7, 0.3, 0.03, 0.03, 0.03]
         
         original_content_activations = None
@@ -152,7 +143,8 @@ class LossCalculator():
         loss = alpha * content_loss + beta * style_loss + gamma * total_var_reg
 
         return loss
-    
+
+# Code to test the loss calculator (for shapes)
 if __name__ == "__main__":
     
     x = torch.randn(10, 3, 256, 256)
@@ -166,7 +158,7 @@ if __name__ == "__main__":
     import src.dataset
     import matplotlib.pyplot as plt
     
-    dataset = src.dataset.COCOImageDatset(
+    dataset = src.dataset.ImageDatset(
         root="data/train2017/",
         style_image_path="style_images/style5.jpg",
         transform=src.dataset.train_transform(),

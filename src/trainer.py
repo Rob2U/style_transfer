@@ -1,14 +1,13 @@
+# Desc: Defines the trainer class, a simple wrapper for the training loop, inspired by the PyTorch Lightning Trainer
 
 import torch
 from tqdm import tqdm
 from torch import optim
-
-
-from torchmetrics import Accuracy
 from .loss import LossCalculator
 from .config import ALPHA, BETA, GAMMA
 
-class Trainer:
+
+class Trainer:    
     def __init__(self, model, optimizer, log_function, accelerator, *args, **kwargs):
         self.accelerator = accelerator
         self.model = model
