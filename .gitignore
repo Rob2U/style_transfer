@@ -164,5 +164,4 @@ cython_debug/
 /wandb
 /.vscode
 /data
-/checkpoints
 /logs
