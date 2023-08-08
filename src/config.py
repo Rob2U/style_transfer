@@ -14,8 +14,8 @@ BETA = 25
 GAMMA = 1e-5
 
 # Dataset related
-# DATA_DIR = os.path.join(os.getcwd(), "data" ,"train2017", "train2017")
-DATA_DIR = os.path.join(os.getcwd(), "data" ,"img_align_celeba", "img_align_celeba")
+DATA_DIR = os.path.join(os.getcwd(), "data", "train2017")
+# DATA_DIR = os.path.join(os.getcwd(), "data" ,"img_align_celeba", "img_align_celeba")
 STYLE_IMAGE_PATH = os.path.join(os.getcwd(), "style_images", "style5.jpg")
 TRAIN_RATIO = 1.0
 VAL_RATIO = 0
@@ -23,7 +23,7 @@ TEST_RATIO = 0
 
 
 # Compute related
-ACCELERATOR = "cuda" # "gpu" or "cpu
+ACCELERATOR = "cpu" # "gpu" or "cpu
 
 # Path to the folder where the pretrained models are saved / will be saved
 CHECKPOINT_PATH = os.path.join(os.getcwd(), "checkpoints")

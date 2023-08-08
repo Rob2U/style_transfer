@@ -78,13 +78,11 @@ def perform_train_val_test_split(dataset, data_dir, style_image_path, train_size
         dataset_train = dataset(
             root=data_dir,
             style_image_path=style_image_path,
-            transform=train_transform(),
         )
         
         dataset_test = dataset(
             root=data_dir,
             style_image_path=style_image_path,
-            transform=test_transform(),
         )
         
         dataset_size = len(dataset_train) # replace with actual dataset size

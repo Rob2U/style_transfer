@@ -8,7 +8,7 @@ import PIL.Image as Image
 import torchvision.transforms as transforms
 from .architecture import ImageTransformNet
 
-ACCELERATOR = torch.device("mps")
+ACCELERATOR = torch.device("cpu")
 
 # load model
 # pretrained_filename = "./checkpoints/<class 'src.models.johnson_model.JohnsonsImageTransformNet'>--2023-07-22_11-26-02vanGogh--up--in--vgg16--1-10-1e-5--allreflect--long.pth"

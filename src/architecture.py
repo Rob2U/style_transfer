@@ -65,7 +65,7 @@ class ImageTransformNet(nn.Module):
         conv_4_filters = 64
         conv_4_kernel_size = 3 
         conv_4_stride = 2
-        self.up1 = UpsampleConvLayer(in_channels=conv_3_filters, 
+        self.up1 = UpsampleLayer(in_channels=conv_3_filters, 
                                     out_channels=conv_4_filters,
                                     kernel_size=conv_4_kernel_size,
                                     stride=conv_4_stride,
@@ -85,7 +85,7 @@ class ImageTransformNet(nn.Module):
         conv_5_filters = 32
         conv_5_kernel_size = 3
         conv_5_stride = 2
-        self.up2 = UpsampleConvLayer(conv_4_filters, 
+        self.up2 = UpsampleLayer(conv_4_filters, 
                                     conv_5_filters, 
                                     kernel_size=conv_5_kernel_size, 
                                     stride=conv_5_stride
@@ -157,7 +157,7 @@ class ResBlock(nn.Module):
         
         return y
     
-class UpsampleConvLayer(torch.nn.Module):
+class UpsampleLayer(torch.nn.Module):
     """
     A wrapper around interpolate and convolution to offer an abstraction for
     """
