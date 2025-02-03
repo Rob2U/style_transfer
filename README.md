@@ -1,6 +1,6 @@
 # DL Projekt: Style Transfer
 
-## Demo (see also `demo.ipynb`
+## Demo (see also `demo.ipynb`)
 <img width="368" alt="grafik" src="https://github.com/user-attachments/assets/299feb02-aaea-498f-8528-a8132a2863f4" />
 
 
